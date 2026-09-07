@@ -49,10 +49,11 @@ EEE933/
 │
 ├── README.md
 │
-├── EC01/ │ 
-├── README.md 
-│ ├── EC01.Rmd 
-│ └── data/
+├── EC01/ 
+│ ├── EC01.Rmd │
+├── imc_20162.csv │ 
+├── CS01_20172.csv │ 
+└── figuras/
 │
 ├── EC02/
 │   └── ...
