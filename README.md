@@ -12,7 +12,7 @@ Repositório destinado aos **Estudos de Caso (ECs)** da disciplina **EEE933 — 
 
 ## 👨‍🎓 Alunos
 
-* **Amanda Moitinho**
+* **Amanda Bomfim Moitinho**
 * **David Felipe Brochero Giraldo**
 * **Henrique Marques Cruz**
 
