@@ -1,6 +1,6 @@
 ---
 title: 'EEE933 - Estudo de Caso 01: Comparação do IMC médio de alunos do PPGEE-UFMG entre os semestres 2016-2 e 2017-2'
-author: "Amanda Moitinho, David Felipe Brochero Giraldo, Henrique Marques Cruz"
+author: "Amanda Bomfim Moitinho, David Felipe Brochero Giraldo, Henrique Marques Cruz"
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
 subtitle: "Professor: Michel Bessani"
 output:
