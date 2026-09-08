@@ -14,10 +14,6 @@ output:
 if (!require(ggplot2, quietly = TRUE)) install.packages("ggplot2")
 library(ggplot2)
 knitr::opts_chunk$set(echo = TRUE)
-# guarda defensiva: em sistemas cujo locale padrão não é UTF-8, strings
-# acentuadas escritas direto no código (legendas de tabela, labs(), etc.)
-# podem sair corrompidas no PDF. Isso não deveria acontecer no RStudio em
-# instalações normais, mas custa nada garantir.
 for (loc in c("pt_BR.UTF-8", "en_US.UTF-8", "C.UTF-8")) {
   if (suppressWarnings(Sys.setlocale("LC_CTYPE", loc)) != "") break
 }
@@ -27,56 +23,46 @@ for (loc in c("pt_BR.UTF-8", "en_US.UTF-8", "C.UTF-8")) {
 
 Este estudo compara o Índice de Massa Corporal (IMC) médio de alunos de
 pós-graduação do PPGEE-UFMG entre os semestres 2016-2 e 2017-2, separando a
-análise por sexo conforme recomendado no enunciado. Foram conduzidos testes
-$t$ de Welch para duas amostras independentes, com verificação de premissas
-(normalidade via Shapiro-Wilk, homogeneidade de variância via teste F) e
-teste de Wilcoxon como checagem de robustez. **Não foi encontrada diferença
-estatisticamente significativa em nenhum dos dois grupos ao nível
-$\alpha = 0.05$** (mulheres: $p = 0.060$; homens: $p = 0.593$). No entanto,
-o tamanho de efeito estimado para o grupo feminino é grande
-($d \approx 1.21$), e a análise de potência mostra que o teste está
-subdimensionado (potência $\approx 48\%$) para detectar esse efeito com as
-amostras disponíveis ($n=7$ e $n=4$) — ou seja, a ausência de significância
-não deve ser lida como evidência de ausência de diferença. Para os homens, o
-efeito estimado é pequeno ($d \approx 0.17$) com amostras bem maiores
-($n=21$ em cada semestre), o que torna mais plausível que uma diferença real,
-se existir, seja de magnitude pouco relevante na prática.
+análise por sexo. Foram conduzidos testes $t$ de Welch para duas amostras
+independentes, com verificação de premissas (normalidade via Shapiro-Wilk,
+homogeneidade de variância via teste de Fligner-Killeen) e teste de Wilcoxon
+como checagem de robustez. Para o grupo feminino, não foi encontrada diferença
+estatisticamente significativa ao nível $\alpha = 0.05$ ($p = 0.060$), porém o
+tamanho de efeito é grande ($d \approx 1.21$) e o teste está subdimensionado
+(potência $\approx 48\%$) para detectar esse efeito com as amostras disponíveis
+($n=7$ e $n=4$). Para o grupo masculino, também não há diferença significativa
+($p = 0.593$) e o efeito estimado é pequeno ($d \approx 0.17$) com amostras
+maiores ($n=21$ em cada semestre).
 
 ## Desenho experimental
 
 ### Hipóteses
 
-Seguindo a recomendação do enunciado, a amostra foi estratificada por sexo e
-dois testes independentes foram conduzidos — um para cada subpopulação:
+A amostra foi estratificada por sexo e dois testes independentes foram
+conduzidos, um para cada subpopulação:
 
 $$\text{Mulheres:}\quad\begin{cases} H_0: \mu_{F,2016} = \mu_{F,2017}\\ H_1: \mu_{F,2016} \neq \mu_{F,2017}\end{cases} \qquad
 \text{Homens:}\quad\begin{cases} H_0: \mu_{M,2016} = \mu_{M,2017}\\ H_1: \mu_{M,2016} \neq \mu_{M,2017}\end{cases}$$
 
-Optou-se por hipóteses **bilaterais** por não haver, no enunciado ou na
-literatura consultada, uma razão a priori para esperar que o IMC tenha subido
-ou descido de um semestre para o outro;
-se houvesse argumento para uma direção específica, o teste poderia ser
-unilateral, o que aumentaria a potência para a mesma amostra.
-
-Nível de significância adotado: $\alpha = 0.05$ por teste. 
+Utilizamos hipóteses **bilaterais** por não haver razão a priori para esperar
+que o IMC tenha subido ou descido de um semestre para o outro. O nível de
+significância adotado é $\alpha = 0.05$ por teste.
 
 ### Descrição da coleta e consolidação dos dados
 
-Os dois arquivos fornecidos têm formatos diferentes e exigiram consolidação
-antes da análise:
+Os dois arquivos fornecidos têm formatos diferentes, exigindo consolidação:
 
-- `imc_20162.csv`: separado por vírgula, colunas
-  `ID, Course, Gender, Height.m, Weight.kg`. Contém alunos de **dois cursos**
-  (PPGEE e ENGSIS/graduação); os registros de ENGSIS foram **excluídos**,
-  pois o escopo do estudo é a pós-graduação em Engenharia Elétrica.
-- `CS01_20172.csv`: separado por ponto-e-vírgula, colunas
-  `Weight.kg, height.m, Sex, Age.years` (sem coluna de curso e sem ID, mas
-  com idade).
+- `imc_20162.csv`: separado por vírgula, colunas `ID, Course, Gender, Height.m,
+  Weight.kg`. Contém alunos de dois cursos (PPGEE e ENGSIS/graduação); os
+  registros de ENGSIS foram excluídos, pois o escopo do estudo é a
+  pós-graduação em Engenharia Elétrica.
+- `CS01_20172.csv`: separado por ponto-e-vírgula, colunas `Weight.kg, height.m,
+  Sex, Age.years` (sem coluna de curso e sem ID, mas com idade).
 
 **Suposição explícita:** como o arquivo de 2017-2 não tem coluna de curso e
 o enunciado só menciona mistura de turmas para o arquivo de 2016-2,
 assumimos que todos os registros de `CS01_20172.csv` já são de alunos do
-PPGEE. 
+PPGEE.
 
 **Limitação a registrar:** a idade só está disponível em 2017-2. Não é
 possível controlar por idade de forma consistente entre os dois semestres,
@@ -86,10 +72,8 @@ o que é um confundidor em potencial para IMC.
 d16 <- read.csv("imc_20162.csv", stringsAsFactors = FALSE)
 d17 <- read.csv("CS01_20172.csv", sep = ";", stringsAsFactors = FALSE)
 
-# mantém apenas PPGEE no arquivo de 2016-2
 d16 <- d16[d16$Course == "PPGEE", ]
 
-# IMC = peso (kg) / altura (m)^2
 d16$BMI <- d16$Weight.kg / (d16$Height.m^2)
 d17$BMI <- d17$Weight.kg / (d17$height.m^2)
 
@@ -111,9 +95,9 @@ knitr::kable(table(Semestre = df$Semestre, Sexo = df$Sexo),
              caption = "Número de observações por grupo")
 ```
 
-O grupo feminino de 2017-2 tem apenas 4 observações — bem menor que os
+O grupo feminino de 2017-2 tem apenas 4 observações, bem menor que os
 demais grupos (7, 21 e 21). Isso já é um sinal de alerta para a potência do
-teste correspondente, discutida mais adiante.
+teste correspondente.
 
 ```{r sumario, echo=FALSE}
 resumo <- aggregate(IMC ~ Semestre + Sexo, data = df, FUN = function(x)
@@ -133,14 +117,10 @@ ggplot(df, aes(x = Semestre, y = IMC, fill = Semestre)) +
   theme(legend.position = "none")
 ```
 
-O IMC médio feminino aparenta cair de 2016-2 para 2017-2 (de
-`r round(resumo$Media[resumo$Sexo=="Feminino" & resumo$Semestre=="2016-2"],1)`
-para
-`r round(resumo$Media[resumo$Sexo=="Feminino" & resumo$Semestre=="2017-2"],1)`
-kg/m², este último já na fronteira com a faixa de baixo peso), enquanto o
+O IMC médio feminino aparenta cair de 2016-2 para 2017-2, enquanto o
 masculino se mantém praticamente estável. A dispersão é visivelmente maior
 no grupo masculino, e o grupo feminino de 2017-2 tem poucos pontos e pouca
-variabilidade aparente — mas isso pode ser só efeito do $n$ pequeno.
+variabilidade aparente, mas isso pode ser só efeito do $n$ pequeno.
 
 ## Análise Estatística
 
@@ -159,24 +139,20 @@ knitr::kable(do.call(rbind, sw), row.names = FALSE,
 ```
 
 O único grupo em que a normalidade é rejeitada a 5% é o feminino de 2017-2
-($p = 0.037$) — mas com $n=4$ o teste de Shapiro-Wilk tem potência muito
+($p = 0.037$), mas com $n=4$ o teste de Shapiro-Wilk tem potência muito
 baixa para detectar não-normalidade, então esse resultado precisa ser
 interpretado com cautela nos dois sentidos: nem confirma nem descarta bem a
-suposição. Por segurança, reportamos abaixo também o teste de Wilcoxon
-(não-paramétrico) para esse grupo.
+suposição.
 
 ```{r vartest, echo=TRUE}
-var_F <- var.test(IMC ~ Semestre, data = df[df$Sexo == "Feminino", ])
-var_M <- var.test(IMC ~ Semestre, data = df[df$Sexo == "Masculino", ])
-data.frame(Sexo = c("Feminino", "Masculino"),
-           F_estat = round(c(var_F$statistic, var_M$statistic), 3),
-           p_valor = round(c(var_F$p.value, var_M$p.value), 3))
+fligner.test(IMC ~ Semestre, data = df[df$Sexo == "Feminino", ])
+fligner.test(IMC ~ Semestre, data = df[df$Sexo == "Masculino", ])
 ```
 
-Nenhum dos dois testes F rejeita igualdade de variâncias, mas usamos o teste
-$t$ de **Welch** (variâncias não necessariamente iguais) por padrão em ambos
-os casos — é mais robusto e a perda de potência quando as variâncias são de
-fato iguais é pequena.
+Nenhum dos testes de Fligner-Killeen rejeita igualdade de variâncias, mas
+utilizamos o teste $t$ de **Welch** (variâncias não necessariamente iguais)
+por padrão em ambos os casos, pois é mais robusto e a perda de potência quando
+as variâncias são de fato iguais é pequena.
 
 ### Teste de hipóteses, tamanho de efeito e intervalo de confiança
 
@@ -208,18 +184,6 @@ wM <- wilcox.test(xM16, xM17)
 wM
 ```
 
-**Resumo:**
-
-| Grupo | $n_1$ vs $n_2$ | $\bar{x}_{2016}$ | $\bar{x}_{2017}$ | $t$ (Welch) | $p$ | IC 95% (diferença) | Cohen's $d$ |
-|---|---|---|---|---|---|---|---|
-| Feminino | 7 vs 4 | 21.08 | 18.45 | 2.17 (df=8.60) | 0.060 | [-0.13, 5.41] | 1.21 (grande) |
-| Masculino | 21 vs 21 | 24.94 | 24.29 | 0.54 (df=38.06) | 0.593 | [-1.79, 3.09] | 0.17 (pequeno) |
-
-O teste de Wilcoxon confirma qualitativamente os dois resultados
-($p=0.073$ para mulheres, $p=0.709$ para homens), então a violação de
-normalidade no grupo feminino de 2017-2 não parece estar mudando a
-conclusão.
-
 ### Potência do teste
 
 ```{r power, echo=TRUE}
@@ -230,8 +194,6 @@ power.t.test(n = mean(c(length(xF16), length(xF17))),
 power.t.test(n = 21, delta = abs(mean(xM16) - mean(xM17)),
              sd = sqrt((var(xM16) + var(xM17)) / 2), sig.level = 0.05)
 
-# tamanho de amostra necessário (por grupo) para 80% de potência,
-# usando o tamanho de efeito observado no grupo feminino
 power.t.test(delta = abs(mean(xF16) - mean(xF17)),
              sd = sqrt((var(xF16) + var(xF17)) / 2),
              sig.level = 0.05, power = 0.80)
@@ -240,41 +202,38 @@ power.t.test(delta = abs(mean(xF16) - mean(xF17)),
 Para o grupo **feminino**, a potência post-hoc é de apenas
 $\approx 48\%$: mesmo que a diferença populacional real seja tão grande
 quanto a observada ($d\approx1.2$), há quase metade de chance de o teste
-não detectá-la com $n=7$ e $n=4$. Seriam necessários $\approx 11$
-observações por semestre (quase o triplo do $n=4$ atual em 2017-2) para
-atingir 80% de potência nesse tamanho de efeito. **A não-rejeição de
-$H_0$ no grupo feminino é, portanto, inconclusiva — não é evidência de que
-não há diferença.**
+não detectá-la com $n=7$ e $n=4$. Seriam necessárias $\approx 11$
+observações por semestre para atingir 80% de potência nesse tamanho de
+efeito. **A não-rejeição de $H_0$ no grupo feminino é, portanto,
+inconclusiva, ou seja, não é evidência de que não há diferença.**
 
-Para o grupo **masculino**, a potência post-hoc é baixíssima
-($\approx 7.6\%$), mas isso reflete principalmente o fato de o efeito
-estimado ser pequeno ($d\approx0.17$) e não a falta de dados — já há 21
-observações por semestre. Aqui a leitura é diferente: se existir uma
-diferença real, ela provavelmente é pequena o suficiente para ter pouca
-relevância prática.
+Para o grupo **masculino**, a potência decorre do fato de o efeito
+estimado ser pequeno ($d\approx0.17$) com amostras maiores ($n=21$ em
+cada semestre). Nesse caso, se existir uma diferença
+real, ela provavelmente é pequena o suficiente para ter pouca relevância
+prática.
 
 ## Conclusões e Recomendações
 
 - Ao nível $\alpha=0.05$, não há evidência estatística de diferença no IMC
   médio entre 2016-2 e 2017-2, nem para mulheres ($p=0.060$) nem para homens
   ($p=0.593$).
-- Essa conclusão precisa ser qualificada de forma diferente para cada sexo:
-  para as mulheres, o tamanho de efeito é grande mas a amostra é pequena e
+- Para as mulheres, o tamanho de efeito é grande mas a amostra é pequena e
   desbalanceada (7 vs. 4), então o resultado é **inconclusivo** por falta de
   potência; para os homens, a amostra é grande o bastante para que um efeito
   pequeno como o observado provavelmente reflita a ausência de diferença
   prática relevante.
 - **Recomendações para melhorar o experimento:** (i) aumentar e balancear o
-  tamanho amostral do subgrupo feminino em ambos os semestres — é o
+  tamanho amostral do subgrupo feminino em ambos os semestres, já que é o
   gargalo de potência do estudo; (ii) coletar idade (e, se possível, outras
   covariáveis de estilo de vida) de forma consistente nos dois semestres,
   já que faltam no arquivo de 2016-2 e são um confundidor plausível; (iii)
   se o objetivo for medir mudança ao longo do tempo (e não só diferença
   entre coortes), considerar um desenho pareado/longitudinal com os mesmos
   indivíduos, em vez de duas amostras independentes; (iv) dado que o IMC é
-  um proxy limitado para composição corporal [2,3,4], complementar com outra
-  métrica (ex. percentual de gordura, relação cintura-quadril) reforçaria a
-  robustez das conclusões.
+  um proxy limitado para composição corporal, complementar com outra
+  métrica (ex. percentual de gordura, relação cintura-quadril) aumentaria
+  a confiabilidade das conclusões.
 
 ## Papéis da equipe
 
