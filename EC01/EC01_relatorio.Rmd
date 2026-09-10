@@ -237,9 +237,9 @@ prática.
 
 ## Papéis da equipe
 
-- Amanda Moitinho — _preencher papel (Relator/Verificador/etc.)_
-- David Felipe Brochero Giraldo — _preencher papel_
-- Henrique Marques Cruz — _preencher papel_
+- Amanda Bomfim Moitinho — _Verificadora_
+- David Felipe Brochero Giraldo — _Relator_
+- Henrique Marques Cruz — _Relator_
 
 ## Declaração sobre o uso de IA generativa e tecnologias assistidas por IA
 
