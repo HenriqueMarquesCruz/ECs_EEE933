@@ -49,7 +49,7 @@ conduzidos, um para cada subpopulação:
 $$\text{Mulheres:}\quad\begin{cases} H_0: \mu_{F,2016} = \mu_{F,2017}\\ H_1: \mu_{F,2016} \neq \mu_{F,2017}\end{cases} \qquad
 \text{Homens:}\quad\begin{cases} H_0: \mu_{M,2016} = \mu_{M,2017}\\ H_1: \mu_{M,2016} \neq \mu_{M,2017}\end{cases}$$
 
-Utilizamos hipóteses **bilaterais** por não haver razão a priori para esperar
+Foram utilizadas hipóteses bilaterais por não haver razão a priori para esperar
 que o IMC tenha subido ou descido de um semestre para o outro. O nível de
 significância adotado é $\alpha = 0.05$ por teste.
 
@@ -57,7 +57,7 @@ significância adotado é $\alpha = 0.05$ por teste.
 
 Tendo em vista que não há um consenso de diferença mínima clinicamente
 importante (MCID, do inglês *Minimal Clinically Important Difference*),
-definimos como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso — nenhuma delas corresponde exatamente à população deste estudo (provavelmente adultos, sem diagnóstico de obesidade) —, e que MCID descreve tipicamente mudança intraindividual ao longo do tempo; aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
+definiu-se como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso — nenhuma delas corresponde exatamente à população deste estudo (provavelmente adultos, sem diagnóstico de obesidade) —, e que MCID descreve tipicamente mudança intraindividual ao longo do tempo; aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
 
 ```{r mcid, echo=TRUE}
 mcid <- 1.0  # delta* (MCID) adotado, em kg/m^2 
@@ -78,10 +78,6 @@ Os dois arquivos fornecidos têm formatos diferentes, exigindo consolidação:
 o enunciado só menciona mistura de turmas para o arquivo de 2016-2,
 assumimos que todos os registros de `CS01_20172.csv` já são de alunos do
 PPGEE.
-
-**Limitação a registrar:** a idade só está disponível em 2017-2. Não é
-possível controlar por idade de forma consistente entre os dois semestres,
-o que é um confundidor em potencial para IMC.
 
 ```{r loaddata}
 d16 <- read.csv("imc_20162.csv", stringsAsFactors = FALSE)
