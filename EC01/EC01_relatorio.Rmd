@@ -4,10 +4,10 @@ author: "Amanda Bomfim Moitinho, David Felipe Brochero Giraldo, Henrique Marques
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
 lang: pt-BR
 output:
-  html_document:
-    df_print: paged
   pdf_document:
     fig_caption: yes
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, results='hide', warning=FALSE, message=FALSE, echo=FALSE}
@@ -105,8 +105,7 @@ PPGEE.
 **Limitação quanto à independência:** o arquivo de 2017-2 não inclui
 identificação individual, de modo que não é possível verificar se algum aluno
 aparece nos dois semestres. Em um mesmo programa, essa sobreposição tende a ocorrer
-entre os alunos matrículados em anos consecutivos, o que compromete a premissa de independência
-entre as amostras: como as medições do mesmo indivíduo são positivamente
+entre os alunos matrículados em anos consecutivos, o que compromete a premissa de independência entre as amostras: como as medições do mesmo indivíduo são positivamente
 correlacionadas, o teste $t$ de duas amostras (que assume independência)
 superestima o erro padrão da diferença de médias, tornando o teste mais
 conservador do que deveria.
@@ -140,9 +139,9 @@ knitr::kable(table(Semestre = df$Semestre, Sexo = df$Sexo),
              caption = "Número de observações por grupo")
 ```
 
-O grupo feminino de 2017-2 tem apenas 4 observações, bem menos que os
-demais grupos (7, 21 e 21). Isso já é um sinal de alerta para a potência do
-teste correspondente.
+O grupo feminino de 2017-2 possui apenas 4 observações, bem menos que os
+demais grupos (7, 21 e 21). Isso consiste em um sinal de alerta para a potência do
+teste correspondente. 
 
 A Tabela 2 resume as estatísticas descritivas do IMC por grupo.
 
@@ -167,9 +166,9 @@ ggplot(df, aes(x = Semestre, y = IMC, fill = Semestre)) +
 ```
 
 O IMC médio feminino aparenta cair de 2016-2 para 2017-2, enquanto o
-masculino se mantém praticamente estável. A dispersão é visivelmente maior
+masculino se mantém aparentemente estável. A dispersão é visivelmente maior
 no grupo masculino, e o grupo feminino de 2017-2 tem poucos pontos e pouca
-variabilidade aparente, mas isso pode ser só efeito do $n$ pequeno.
+variabilidade aparente. Contudo, tais observações podem ser efeito do $n$ pequeno.
 
 ## Análise Estatística
 
@@ -205,7 +204,7 @@ wM <- wilcox.test(xM16, xM17)
 wM
 ```
 
-O teste $t$ de **Welch** foi utilizado como teste principal por ser mais
+O teste $t$ de Welch foi utilizado como teste principal por ser mais
 robusto a diferenças de variância entre grupos, enquanto que o teste de Wilcoxon foi
 incluso como checagem de robustez sob possíveis violações de normalidade.
 
@@ -228,21 +227,20 @@ npotM <- power.t.test(delta = mcid, sd = sdM, sig.level = 0.05, power = 0.80)
 potF; potM; npotF; npotM
 ```
 
-Para o grupo **feminino**, a potência para detectar $\delta^* = `r mcid`$
+Para o grupo feminino, a potência para detectar $\delta^* = `r mcid`$
 kg/m² é de apenas $`r round(potF$power * 100, 1)`\%$, com $n=7$ e $n=4$.
 Seriam necessárias $\approx$ `r ceiling(npotF$n)` observações por semestre
 para atingir 80% de potência nesse efeito. A não-rejeição de $H_0$ é,
 portanto, inconclusiva quanto a um efeito do tamanho do $\delta^*$.
 
-Para o grupo **masculino**, apesar de $n=21$ em cada semestre, a potência
+Para o grupo masculino, apesar de $n=21$ em cada semestre, a potência
 para o mesmo $\delta^*$ é de apenas $`r round(potM$power * 100, 1)`\%$.
 Seriam necessárias ainda cerca de `r ceiling(npotM$n)` observações por
 semestre para atingir 80% de potência, bem mais que o exigido no grupo
 feminino, visto que o desvio-padrão do IMC masculino ($`r round(sdM, 2)`$) é
-quase o dobro do feminino ($`r round(sdF, 2)`$). Ou seja, **o $n=21$ por
+quase o dobro do feminino ($`r round(sdF, 2)`$). Ou seja, o $n=21$ por
 grupo definido no desenho original, que era aparentemente razoável,
-não bastou para detectar o o efeito mínimo relevante $\delta^*$
- pré-especificado.**
+não bastou para detectar o o efeito mínimo relevante $\delta^*$ pré-especificado.
 
 ### Verificação das premissas
 
@@ -268,9 +266,7 @@ knitr::kable(do.call(rbind, sw), row.names = FALSE,
 ```
 
 O único grupo em que a normalidade é rejeitada a 5% é o feminino de 2017-2
-($p = 0.037$), porém, com $n=4$, o teste de Shapiro-Wilk tem potência muito
-baixa para detectar não-normalidade, e o resultado deve ser lido em conjunto
-com com cautela, visto que não confirma nem descarta a suposição de normalidade.
+($p = 0.037$). Porém, com $n=4$, o teste de Shapiro-Wilk tem potência baixa para detectar não-normalidade, e o resultado deve ser lido em conjunto com cautela, visto que não confirma nem descarta a suposição de normalidade.
 
 ```{r vartest, echo=TRUE}
 fligner.test(IMC ~ Semestre, data = df[df$Sexo == "Feminino", ])
@@ -291,12 +287,12 @@ variâncias é desaconselhado na literatura, por distorcer a taxa de erro tipo I
 - Ao nível $\alpha = 0.05$, não há evidência estatística de diferença no IMC
   médio entre 2016-2 e 2017-2, nem para mulheres ($p = `r round(tF$p.value, 3)`$)
   nem para homens ($p = `r round(tM$p.value, 3)`$).
-- Para **ambos os grupos**, a potência para detectar $\delta^* = `r mcid`$
- $ $kg/m^2$ é baixa ($\approx `r round(potF$power * 100, 0)`\%$ nas mulheres,
+- Para ambos os grupos, a potência para detectar $\delta^* = `r mcid`$
+  $kg/m^2$ é baixa ($\approx `r round(potF$power * 100, 0)`\%$ nas mulheres,
   $\approx `r round(potM$power * 100, 0)`\%$ nos homens): a não-rejeição de
   $H_0$ é inconclusiva nos dois casos, não é evidência de ausência de efeito.
 - **Recomendações para melhorar o experimento:** (i) aumentar o tamanho
-  amostral em **ambos os grupos** para algo próximo de `r ceiling(npotF$n)`
+  amostral em ambos os grupos para algo próximo de `r ceiling(npotF$n)`
   por semestre nas mulheres e `r ceiling(npotM$n)` nos homens, caso o
   objetivo seja atingir 80% de potência para $\delta^*$; dado o custo de
   coletar ~`r ceiling(npotM$n)` homens por semestre, vale questionar se
