@@ -57,7 +57,7 @@ significância adotado é $\alpha = 0.05$ por teste.
 
 Tendo em vista que não há um consenso de diferença mínima clinicamente
 importante (MCID, do inglês *Minimal Clinically Important Difference*),
-definimos como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso — nenhuma delas corresponde à população deste estudo (adultos sem diagnóstico de obesidade) —, e que MCID descreve tipicamente mudança intraindividual ao longo do tempo; aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
+definimos como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso — nenhuma delas corresponde exatamente à população deste estudo (provavelmente adultos, sem diagnóstico de obesidade) —, e que MCID descreve tipicamente mudança intraindividual ao longo do tempo; aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
 
 ```{r mcid, echo=TRUE}
 mcid <- 1.0  # delta* (MCID) adotado, em kg/m^2 
