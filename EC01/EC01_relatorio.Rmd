@@ -64,12 +64,7 @@ significância adotado é $\alpha = 0.05$ por teste.
 
 Tendo em vista que não há um consenso de diferença mínima clinicamente
 importante (MCID, do inglês *Minimal Clinically Important Difference*),
-definiu-se como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso — nenhuma delas corresponde exatamente à população deste estudo (provavelmente adultos, sem diagnóstico de obesidade) —, e que MCID descreve tipicamente mudança intraindividual ao longo do tempo; aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
-
-
-Tendo em vista que não há um consenso de diferença mínima clinicamente
-importante (MCID, do inglês *Minimal Clinically Important Difference*),
-definiu-se como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso e que MCID descreve tipicamente mudança intraindividual ao longo do tempo. Não há evidências de que esses contextos se aplicam à população do presente estudo, que provavelmente consiste em adultos sem diagnóstico de obesidade. Assim, aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
+definiu-se como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso e que MCID descreve tipicamente mudança intraindividual ao longo do tempo. Não há evidências de que esses contextos se aplicam à população do presente estudo, que provavelmente consiste em adultos majoritariamente sem diagnóstico de obesidade. Assim, aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
 
 ```{r mcid, echo=TRUE}
 mcid <- 1.0  # delta* (MCID) adotado, em kg/m^2 
@@ -97,8 +92,8 @@ d17 <- read.csv("CS01_20172.csv", sep = ";", stringsAsFactors = FALSE)
 
 d16 <- d16[d16$Course == "PPGEE", ]
 
-d16$BMI <- d16$Weight.kg / (d16$Height.m^2)
-d17$BMI <- d17$Weight.kg / (d17$height.m^2)
+d16$IMC <- d16$Weight.kg / (d16$Height.m^2)
+d17$IMC <- d17$Weight.kg / (d17$height.m^2)
 
 df <- data.frame(
   Semestre = factor(c(rep("2016-2", nrow(d16)), rep("2017-2", nrow(d17))),
@@ -107,7 +102,7 @@ df <- data.frame(
                      labels = c("Feminino", "Masculino")),
   Altura   = c(d16$Height.m, d17$height.m),
   Peso     = c(d16$Weight.kg, d17$Weight.kg),
-  IMC      = c(d16$BMI, d17$BMI)
+  IMC      = c(d16$IMC, d17$IMC)
 )
 ```
 
