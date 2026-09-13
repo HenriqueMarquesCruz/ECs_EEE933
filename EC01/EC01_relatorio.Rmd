@@ -11,6 +11,10 @@ output:
 ---
 
 ```{r setup, results='hide', warning=FALSE, message=FALSE, echo=FALSE}
+# Limpar workspace
+rm(list=ls())
+
+# Pacotes
 if (!require(ggplot2, quietly = TRUE)) install.packages("ggplot2")
 library(ggplot2)
 knitr::opts_chunk$set(echo = TRUE)
@@ -40,6 +44,9 @@ inconclusivos quanto à existência de uma diferença de pelo menos 1.0 kg/m²
 entre os semestres.
 
 ## Desenho experimental
+
+### Descrição do problema
+Neste estudo deseja-se comparar o Índice de Massa Corporal (IMC) médio de duas populações como um valor proxy para variáveis relativas ao estilo de vida dos indivíduos. As amostras fornecem os dados de peso, altura e sexo de alunos de pós-graduação em Engenharia Elétrica na UFMG nos semestres 2016-2 e 2017-2.
 
 ### Hipóteses
 
