@@ -2,7 +2,7 @@
 title: 'EEE933 - Estudo de Caso 01: Comparação do IMC médio de alunos do PPGEE-UFMG entre os semestres 2016-2 e 2017-2'
 author: "Amanda Bomfim Moitinho, David Felipe Brochero Giraldo, Henrique Marques Cruz"
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
-subtitle: "Professor: Michel Bessani"
+lang: pt-BR
 output:
   pdf_document:
     fig_caption: yes
@@ -27,12 +27,17 @@ análise por sexo. Foram conduzidos testes $t$ de Welch para duas amostras
 independentes, com verificação de premissas (normalidade via Shapiro-Wilk,
 homogeneidade de variância via teste de Fligner-Killeen) e teste de Wilcoxon
 como checagem de robustez. Para o grupo feminino, não foi encontrada diferença
-estatisticamente significativa ao nível $\alpha = 0.05$ ($p = 0.060$), porém o
-tamanho de efeito é grande ($d \approx 1.21$) e o teste está subdimensionado
-(potência $\approx 48\%$) para detectar esse efeito com as amostras disponíveis
-($n=7$ e $n=4$). Para o grupo masculino, também não há diferença significativa
-($p = 0.593$) e o efeito estimado é pequeno ($d \approx 0.17$) com amostras
-maiores ($n=21$ em cada semestre).
+estatisticamente significativa ao nível $\alpha = 0.05$ ($p = 0.060$), com
+tamanho de efeito observado grande ($d \approx 1.21$). Para o grupo
+masculino, também não há diferença significativa ($p = 0.593$) e o efeito
+observado é pequeno ($d \approx 0.17$). Ao fixar a priori um tamanho de
+efeito mínimo relevante ($\delta^* = 1.0$ kg/m²), a potência do teste é
+baixa nos **dois** grupos — $\approx 10.9\%$ nas mulheres ($n=7$ e $n=4$) e
+$\approx 12.5\%$ nos homens ($n=21$ em cada semestre), esta última
+penalizada pelo desvio-padrão do IMC masculino ($\approx 3.90$) ser quase
+o dobro do feminino ($\approx 2.05$). Ambos os resultados são, portanto,
+inconclusivos quanto à existência de uma diferença de pelo menos 1.0 kg/m²
+entre os semestres.
 
 ## Desenho experimental
 
@@ -47,6 +52,16 @@ $$\text{Mulheres:}\quad\begin{cases} H_0: \mu_{F,2016} = \mu_{F,2017}\\ H_1: \mu
 Utilizamos hipóteses **bilaterais** por não haver razão a priori para esperar
 que o IMC tenha subido ou descido de um semestre para o outro. O nível de
 significância adotado é $\alpha = 0.05$ por teste.
+
+### Tamanho de efeito mínimo relevante ($\delta^*$)
+
+Tendo em vista que não há um consenso de diferença mínima clinicamente
+importante (MCID, do inglês *Minimal Clinically Important Difference*),
+definimos como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tendo como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em adultos e crianças. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso — nenhuma delas corresponde à população deste estudo (adultos sem diagnóstico de obesidade) —, e que MCID descreve tipicamente mudança intraindividual ao longo do tempo; aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
+
+```{r mcid, echo=TRUE}
+mcid <- 1.0  # delta* (MCID) adotado, em kg/m^2 
+```
 
 ### Descrição da coleta e consolidação dos dados
 
@@ -90,14 +105,18 @@ df <- data.frame(
 
 ## Análise Exploratória
 
+A Tabela 1 apresenta o número de observações por grupo, estratificado por sexo e semestre.
+
 ```{r tabela-n, echo=FALSE}
 knitr::kable(table(Semestre = df$Semestre, Sexo = df$Sexo),
              caption = "Número de observações por grupo")
 ```
 
-O grupo feminino de 2017-2 tem apenas 4 observações, bem menor que os
+O grupo feminino de 2017-2 tem apenas 4 observações, bem menos que os
 demais grupos (7, 21 e 21). Isso já é um sinal de alerta para a potência do
 teste correspondente.
+
+A Tabela 2 resume as estatísticas descritivas do IMC por grupo: média, desvio-padrão (DP) e mediana.
 
 ```{r sumario, echo=FALSE}
 resumo <- aggregate(IMC ~ Semestre + Sexo, data = df, FUN = function(x)
@@ -106,6 +125,8 @@ resumo <- do.call(data.frame, resumo)
 names(resumo) <- c("Semestre", "Sexo", "n", "Media", "DP", "Mediana")
 knitr::kable(resumo, digits = 2, caption = "Estatísticas descritivas do IMC por grupo")
 ```
+
+A Figura 1 ilustra a distribuição do IMC por semestre, separada por sexo.
 
 ```{r boxplot, fig.width=7, fig.height=4, fig.cap="IMC por semestre, separado por sexo", echo=TRUE, message=FALSE}
 ggplot(df, aes(x = Semestre, y = IMC, fill = Semestre)) +
@@ -124,7 +145,83 @@ variabilidade aparente, mas isso pode ser só efeito do $n$ pequeno.
 
 ## Análise Estatística
 
+### Teste de hipóteses, tamanho de efeito e intervalo de confiança
+
+```{r cohend-fn}
+cohend <- function(x, y) {
+  nx <- length(x); ny <- length(y)
+  sp <- sqrt(((nx - 1) * var(x) + (ny - 1) * var(y)) / (nx + ny - 2))
+  (mean(x) - mean(y)) / sp
+}
+```
+
+```{r teste-feminino, echo=TRUE}
+xF16 <- df$IMC[df$Sexo == "Feminino" & df$Semestre == "2016-2"]
+xF17 <- df$IMC[df$Sexo == "Feminino" & df$Semestre == "2017-2"]
+tF <- t.test(xF16, xF17)
+tF
+dF <- cohend(xF16, xF17)
+cat("Cohen's d =", round(dF, 2), "\n")
+wF <- wilcox.test(xF16, xF17)
+wF
+```
+
+```{r teste-masculino, echo=TRUE}
+xM16 <- df$IMC[df$Sexo == "Masculino" & df$Semestre == "2016-2"]
+xM17 <- df$IMC[df$Sexo == "Masculino" & df$Semestre == "2017-2"]
+tM <- t.test(xM16, xM17)
+tM
+dM <- cohend(xM16, xM17)
+cat("Cohen's d =", round(dM, 2), "\n")
+wM <- wilcox.test(xM16, xM17)
+wM
+```
+
+Utilizamos o teste $t$ de **Welch** (variâncias não necessariamente iguais)
+como teste principal em ambos os grupos, por ser mais robusto a diferenças
+de variância; o teste de Wilcoxon acompanha como checagem de robustez sob
+não-normalidade. A adequação dessas escolhas é verificada a seguir.
+
+### Potência do teste
+
+A potência é calculada abaixo para o $\delta^*$ (MCID) fixado a priori na seção de Desenho experimental, independente do que foi observado nos dados.
+
+```{r power, echo=TRUE}
+sdF <- sqrt((var(xF16) + var(xF17)) / 2)
+sdM <- sqrt((var(xM16) + var(xM17)) / 2)
+nF  <- mean(c(length(xF16), length(xF17)))
+nM  <- length(xM16)
+
+potF  <- power.t.test(n = nF, delta = mcid, sd = sdF, sig.level = 0.05)
+potM  <- power.t.test(n = nM, delta = mcid, sd = sdM, sig.level = 0.05)
+npotF <- power.t.test(delta = mcid, sd = sdF, sig.level = 0.05, power = 0.80)
+npotM <- power.t.test(delta = mcid, sd = sdM, sig.level = 0.05, power = 0.80)
+
+potF; potM; npotF; npotM
+```
+
+Para o grupo **feminino**, a potência para detectar $\delta^* = `r mcid`$
+kg/m² é de apenas $`r round(potF$power * 100, 1)`\%$, com $n=7$ e $n=4$.
+Seriam necessárias $\approx$ `r ceiling(npotF$n)` observações por semestre
+para atingir 80% de potência nesse efeito. A não-rejeição de $H_0$ é,
+portanto, inconclusiva quanto a um efeito do tamanho do $\delta^*$.
+
+Para o grupo **masculino**, apesar de $n=21$ em cada semestre, a potência
+para o mesmo $\delta^*$ é de apenas $`r round(potM$power * 100, 1)`\%$.
+Seriam necessárias ainda cerca de `r ceiling(npotM$n)` observações por
+semestre para atingir 80% de potência — bem mais que o exigido no grupo
+feminino, porque o desvio-padrão do IMC masculino ($`r round(sdM, 2)`$) é
+quase o dobro do feminino ($`r round(sdF, 2)`$). Ou seja, **o $n=21$ que
+parecia suficiente no desenho original não basta para detectar o efeito mínimo relevante
+pré-especificado.**
+
 ### Verificação das premissas
+
+Ainda que o teste $t$ de Welch seja razoavelmente robusto a pequenos
+desvios das premissas, verificamos abaixo se a normalidade e a
+homogeneidade de variância dos dados usados no teste acima são razoáveis.
+
+A Tabela 3 apresenta os resultados do teste de Shapiro-Wilk de normalidade para cada grupo.
 
 ```{r shapiro, echo=TRUE}
 grupos <- expand.grid(Sexo = levels(df$Sexo), Semestre = levels(df$Semestre))
@@ -149,99 +246,67 @@ fligner.test(IMC ~ Semestre, data = df[df$Sexo == "Feminino", ])
 fligner.test(IMC ~ Semestre, data = df[df$Sexo == "Masculino", ])
 ```
 
-Nenhum dos testes de Fligner-Killeen rejeita igualdade de variâncias, mas
-utilizamos o teste $t$ de **Welch** (variâncias não necessariamente iguais)
-por padrão em ambos os casos, pois é mais robusto e a perda de potência quando
-as variâncias são de fato iguais é pequena.
+Nenhum dos testes de Fligner-Killeen rejeita igualdade de variâncias, o que
+é consistente com a escolha do teste $t$ de Welch já utilizado acima: por
+ser mais robusto e ter perda de potência pequena quando as variâncias são
+de fato iguais, essa escolha permanece adequada independentemente do
+resultado desta checagem. De fato, escolher entre o teste de Student e o de Welch com base no resultado de um teste prévio de igualdade de variâncias é desaconselhado na literatura metodológica, por distorcer a taxa de erro tipo I nominal do teste final [2].
 
-### Teste de hipóteses, tamanho de efeito e intervalo de confiança
-
-```{r cohend-fn}
-cohend <- function(x, y) {
-  nx <- length(x); ny <- length(y)
-  sp <- sqrt(((nx - 1) * var(x) + (ny - 1) * var(y)) / (nx + ny - 2))
-  (mean(x) - mean(y)) / sp
-}
-```
-
-```{r teste-feminino, echo=TRUE}
-xF16 <- df$IMC[df$Sexo == "Feminino" & df$Semestre == "2016-2"]
-xF17 <- df$IMC[df$Sexo == "Feminino" & df$Semestre == "2017-2"]
-tF <- t.test(xF16, xF17)
-tF
-cat("Cohen's d =", round(cohend(xF16, xF17), 2), "\n")
-wF <- wilcox.test(xF16, xF17)
-wF
-```
-
-```{r teste-masculino, echo=TRUE}
-xM16 <- df$IMC[df$Sexo == "Masculino" & df$Semestre == "2016-2"]
-xM17 <- df$IMC[df$Sexo == "Masculino" & df$Semestre == "2017-2"]
-tM <- t.test(xM16, xM17)
-tM
-cat("Cohen's d =", round(cohend(xM16, xM17), 2), "\n")
-wM <- wilcox.test(xM16, xM17)
-wM
-```
-
-### Potência do teste
-
-```{r power, echo=TRUE}
-power.t.test(n = mean(c(length(xF16), length(xF17))),
-             delta = abs(mean(xF16) - mean(xF17)),
-             sd = sqrt((var(xF16) + var(xF17)) / 2), sig.level = 0.05)
-
-power.t.test(n = 21, delta = abs(mean(xM16) - mean(xM17)),
-             sd = sqrt((var(xM16) + var(xM17)) / 2), sig.level = 0.05)
-
-power.t.test(delta = abs(mean(xF16) - mean(xF17)),
-             sd = sqrt((var(xF16) + var(xF17)) / 2),
-             sig.level = 0.05, power = 0.80)
-```
-
-Para o grupo **feminino**, a potência post-hoc é de apenas
-$\approx 48\%$: mesmo que a diferença populacional real seja tão grande
-quanto a observada ($d\approx1.2$), há quase metade de chance de o teste
-não detectá-la com $n=7$ e $n=4$. Seriam necessárias $\approx 11$
-observações por semestre para atingir 80% de potência nesse tamanho de
-efeito. **A não-rejeição de $H_0$ no grupo feminino é, portanto,
-inconclusiva, ou seja, não é evidência de que não há diferença.**
-
-Para o grupo **masculino**, a potência decorre do fato de o efeito
-estimado ser pequeno ($d\approx0.17$) com amostras maiores ($n=21$ em
-cada semestre). Nesse caso, se existir uma diferença
-real, ela provavelmente é pequena o suficiente para ter pouca relevância
-prática.
-
-## Conclusões e Recomendações
+### Conclusões e Recomendações
 
 - Ao nível $\alpha=0.05$, não há evidência estatística de diferença no IMC
-  médio entre 2016-2 e 2017-2, nem para mulheres ($p=0.060$) nem para homens
-  ($p=0.593$).
-- Para as mulheres, o tamanho de efeito é grande mas a amostra é pequena e
-  desbalanceada (7 vs. 4), então o resultado é **inconclusivo** por falta de
-  potência; para os homens, a amostra é grande o bastante para que um efeito
-  pequeno como o observado provavelmente reflita a ausência de diferença
-  prática relevante.
-- **Recomendações para melhorar o experimento:** (i) aumentar e balancear o
-  tamanho amostral do subgrupo feminino em ambos os semestres, já que é o
-  gargalo de potência do estudo; (ii) coletar idade (e, se possível, outras
-  covariáveis de estilo de vida) de forma consistente nos dois semestres,
-  já que faltam no arquivo de 2016-2 e são um confundidor plausível; (iii)
-  se o objetivo for medir mudança ao longo do tempo (e não só diferença
-  entre coortes), considerar um desenho pareado/longitudinal com os mesmos
-  indivíduos, em vez de duas amostras independentes; (iv) dado que o IMC é
-  um proxy limitado para composição corporal, complementar com outra
-  métrica (ex. percentual de gordura, relação cintura-quadril) aumentaria
-  a confiabilidade das conclusões.
+  médio entre 2016-2 e 2017-2, nem para mulheres ($p=`r round(tF$p.value,3)`$)
+  nem para homens ($p=`r round(tM$p.value,3)`$).
+- Para **ambos os grupos**, a potência para detectar o $\delta^* = `r mcid`$
+  kg/m² é baixa ($\approx `r round(potF$power*100,0)`\%$ nas mulheres,
+  $\approx `r round(potM$power*100,0)`\%$ nos homens): a não-rejeição de
+  $H_0$ é inconclusiva nos dois casos, não apenas no grupo feminino como o
+  desenho baseado no efeito observado sugeria.
+- **Recomendações para melhorar o experimento:** (i) aumentar o tamanho
+  amostral em **ambos os grupos** — não só no feminino — para algo próximo
+  de `r ceiling(npotF$n)` por semestre nas mulheres e `r ceiling(npotM$n)`
+  por semestre nos homens, caso o objetivo seja ter potência para detectar
+  o $\delta^*$ com esse desenho; dado o custo de coletar
+  ~`r ceiling(npotM$n)` homens por semestre, vale reconsiderar se esse é de
+  fato o limiar relevante para decisões práticas neste contexto; (ii)
+  coletar idade (e, se possível, outras covariáveis de estilo de vida) de
+  forma consistente nos dois semestres, já que faltam no arquivo de 2016-2
+  e são um confundidor plausível; (iii) se o objetivo for medir mudança ao
+  longo do tempo (e não só diferença entre coortes), considerar um desenho
+  pareado/longitudinal com os mesmos indivíduos, em vez de duas amostras
+  independentes; (iv) dado que o IMC é um proxy limitado para composição
+  corporal, complementar com outra métrica (ex. percentual de gordura,
+  relação cintura-quadril) aumentaria a confiabilidade das conclusões.
 
-## Papéis da equipe
+### Referências
+
+[1] Kral P, Holst-Hansen T, Olivieri AV, Ivanescu C, et al. The Correlation
+Between Body Mass Index and Health-Related Quality of Life: Data from Two
+Weight Loss Intervention Studies. Adv Ther. 2024;41:4228–4247.
+https://doi.org/10.1007/s12325-024-02932-8
+
+[2] Steele RG, Gayes LA, Dalton WT, Smith C, Maphis L, Conway-Williams E.
+Change in health-related quality of life in the context of pediatric obesity
+interventions: A meta-analytic review. Health Psychol. 2016;35(10):1097-1109.
+https://doi.org/10.1037/hea0000362
+
+[3] Hakim Z, Wolf A, Garrison LP. Estimating the effect of changes in body
+mass index on health state preferences. Pharmacoeconomics. 2002;20(6):393-404.
+https://doi.org/10.2165/00019053-200220060-00004
+
+[4] Delacre M, Lakens D, Leys C. Why Psychologists Should by Default Use
+Welch's t-test Instead of Student's t-test. Int Rev Soc Psychol.
+2017;30(1):92-101. https://doi.org/10.5334/irsp.82 (ver errata: Delacre M,
+Lakens D, Leys C. Correction... Int Rev Soc Psychol. 2022;35(1):21.
+https://doi.org/10.5334/irsp.661 — não altera a conclusão principal)
+
+### Papéis da equipe
 
 - Amanda Bomfim Moitinho — _Verificadora_
 - David Felipe Brochero Giraldo — _Relator_
 - Henrique Marques Cruz — _Relator_
 
-## Declaração sobre o uso de IA generativa e tecnologias assistidas por IA
+### Declaração sobre o uso de IA generativa e tecnologias assistidas por IA
 
 Durante a preparação deste trabalho, os autores utilizaram o assistente de
 IA Claude (Anthropic) para apoiar a estruturação do código de análise
