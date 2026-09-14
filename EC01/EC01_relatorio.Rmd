@@ -32,11 +32,11 @@ independentes, com verificação de premissas (normalidade via Shapiro-Wilk,
 homogeneidade de variância via Fligner-Killeen) e teste de Wilcoxon
 como checagem de robustez. Nenhum dos grupos apresentou diferença
 estatisticamente significativa ao nível $\alpha = 0.05$
-($p = 0.060$ para mulheres, $p = 0.593$ para homens),
-mas a potência a priori para detectar um efeito mínimo relevante de $\delta^* = 1.0 kg/m^2$ é baixa nos dois grupos, $\approx 10.9\%$ nas mulheres ($n=7$ e $n=4$) e
+($p = 0.060$ para mulheres, $p = 0.592$ para homens),
+mas a potência a priori para detectar um efeito mínimo relevante de $\delta^* = 1.0 kg/m^2$ é baixa nos dois grupos, $\approx 10.1\%$ nas mulheres ($n=7$ e $n=4$) e
 $\approx 12.5\%$ nos homens ($n=21$ em cada semestre), sendo esta última
 penalizada pelo desvio-padrão do IMC masculino ($\approx 3.90$) ser quase
-o dobro do feminino ($\approx 2.05$). Ambos os resultados são, portanto,
+o dobro do feminino ($\approx 2.18$). Ambos os resultados são, portanto,
 inconclusivos quanto à existência de uma diferença de pelo menos $1.0 kg/m^2$
 entre os semestres.
 
@@ -165,11 +165,12 @@ variabilidade aparente. Contudo, tais observações podem ser efeito do $n$ pequ
 ### Testes de hipóteses, tamanho de efeito e intervalo de confiança
 
 ```{r cohend-fn}
-cohend <- function(x, y) {
+pooled_sd <- function(x, y) {
   nx <- length(x); ny <- length(y)
-  sp <- sqrt(((nx - 1) * var(x) + (ny - 1) * var(y)) / (nx + ny - 2))
-  (mean(x) - mean(y)) / sp
+  sqrt(((nx - 1) * var(x) + (ny - 1) * var(y)) / (nx + ny - 2))
 }
+
+cohend <- function(x, y) (mean(x) - mean(y)) / pooled_sd(x, y)
 ```
 
 ```{r teste-feminino, echo=TRUE}
@@ -204,8 +205,8 @@ A potência é calculada para o $\delta^*$ definido a priori na seção de
 Desenho experimental.
 
 ```{r power, echo=TRUE}
-sdF <- sqrt((var(xF16) + var(xF17)) / 2)
-sdM <- sqrt((var(xM16) + var(xM17)) / 2)
+sdF <- pooled_sd(xF16, xF17)
+sdM <- pooled_sd(xM16, xM17)
 nF  <- mean(c(length(xF16), length(xF17)))
 nM  <- length(xM16)
 
