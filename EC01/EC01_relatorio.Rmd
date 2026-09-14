@@ -33,12 +33,11 @@ homogeneidade de variância via Fligner-Killeen) e teste de Wilcoxon
 como checagem de robustez. Nenhum dos grupos apresentou diferença
 estatisticamente significativa ao nível $\alpha = 0.05$
 ($p = 0.060$ para mulheres, $p = 0.593$ para homens),
-mas a potência a priori para detectar um efeito mínimo relevante de $\delta^* = 1.0
-kg/m^2$ é baixa nos dois grupos, $\approx 10.9\%$ nas mulheres ($n=7$ e $n=4$) e
+mas a potência a priori para detectar um efeito mínimo relevante de $\delta^* = 1.0 kg/m^2$ é baixa nos dois grupos, $\approx 10.9\%$ nas mulheres ($n=7$ e $n=4$) e
 $\approx 12.5\%$ nos homens ($n=21$ em cada semestre), sendo esta última
 penalizada pelo desvio-padrão do IMC masculino ($\approx 3.90$) ser quase
 o dobro do feminino ($\approx 2.05$). Ambos os resultados são, portanto,
-inconclusivos quanto à existência de uma diferença de pelo menos 1.0$ $kg/m^2$
+inconclusivos quanto à existência de uma diferença de pelo menos $1.0 kg/m^2$
 entre os semestres.
 
 ## Desenho experimental
@@ -69,18 +68,9 @@ as conclusões deste caso.
 
 ### Tamanho de efeito mínimo relevante ($\delta^*$)
 
-Como não há consenso sobre uma diferença mínima clinicamente importante (MCID,
-do inglês *Minimal Clinically Important Difference*) para IMC nesse contexto,
-adotamos $\delta^* = 1.0$ $kg/m^2$ com base nos estudos [1], [2] e [3], que
-associam a variação de 1 unidade de IMC a mudanças na qualidade de vida
-relacionada à saúde. Esses estudos foram conduzidos em
-populações com obesidade ou em contextos de intervenção de perda de peso, e
-que MCID descreve tipicamente mudança intraindividual ao longo do tempo,
-condições que provavelmente não se aplicam diretamente à população deste
-estudo, majoritariamente composta por adultos sem diagnóstico de obesidade.
-O valor é portanto utilizado como aproximação conservadora para ancorar a
-análise de potência *a priori*, e não como estimativa específica para esta
-população.
+Tendo em vista que não há um consenso de diferença mínima clinicamente
+importante (MCID, do inglês Minimal Clinically Important Difference),
+definiu-se como tamanho de efeito mínimo relevante $\delta^* = 1.0$ kg/m², tomando como base os estudos [1], [2] e [3], que associam a alteração de 1 unidade de IMC à melhora da qualidade de vida relacionada à saúde em crianças e adultos^[Segundo as referências supracitadas, uma alteração unitária no IMC está associada a efeitos práticos tanto em crianças quanto em adultos. Embora a população do PPGEE seja tipicamente adulta, a mesma métrica é aplicável a crianças, de modo que sua utilização também contempla, em princípio, a eventual e improvável presença de indivíduos menores de idade no semestre de 2016/2.]. Ressalva-se que esses estudos foram conduzidos em populações com obesidade e/ou em contexto de intervenção de perda de peso e que MCID descreve tipicamente mudança intraindividual ao longo do tempo. Esses contextos não se aplicam exatamente à população do presente estudo, que, em sua totalidade, não apresenta IMC associado a um diagnóstico de obesidade, não sendo também um acompanhamento longitudinal dos mesmos indivíduos. Assim, aqui o valor é usado como uma aproximação conservadora para ancorar a análise de potência a priori, e não como uma estimativa específica para a população deste estudo.
 
 ```{r mcid, echo=TRUE}
 mcid <- 1.0  # delta* (MCID) adotado, em kg/m^2
