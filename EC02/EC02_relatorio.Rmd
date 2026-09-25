@@ -600,9 +600,9 @@ Power Calculations for Data Analysis. Am Stat. 2001;55(1):19-24.
 
 ### Papéis da equipe
 
-- Amanda Bomfim Moitinho: [PREENCHER]
-- David Felipe Brochero Giraldo: [PREENCHER]
-- Henrique Marques Cruz: [PREENCHER]
+- Amanda Bomfim Moitinho: Verificadora
+- David Felipe Brochero Giraldo: Relator
+- Henrique Marques Cruz: Relator
 
 ### Declaração sobre o uso de IA generativa e tecnologias assistidas por IA
 
