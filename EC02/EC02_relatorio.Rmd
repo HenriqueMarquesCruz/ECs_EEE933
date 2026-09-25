@@ -1,0 +1,613 @@
+---
+title: 'EEE933 - Estudo de Caso 02: Avaliação e comparação do retorno médio de ações'
+author: "Amanda Bomfim Moitinho, David Felipe Brochero Giraldo, Henrique Marques Cruz"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+lang: pt-BR
+output:
+  pdf_document:
+    fig_caption: yes
+  html_document:
+    df_print: paged
+---
+
+```{r setup, results='hide', warning=FALSE, message=FALSE, echo=FALSE}
+# Limpar workspace
+rm(list=ls())
+
+# Pacotes necessários
+pkgs <- c("ggplot2", "multcomp", "car")
+if (any(!pkgs %in% rownames(installed.packages()))) {
+  stop("Instale previamente os pacotes necessários: ggplot2, multcomp e car.")
+}
+invisible(lapply(pkgs, library, character.only = TRUE))
+knitr::opts_chunk$set(echo = TRUE)
+for (loc in c("pt_BR.UTF-8", "en_US.UTF-8", "C.UTF-8")) {
+  if (suppressWarnings(Sys.setlocale("LC_CTYPE", loc)) != "") break
+}
+```
+
+```{r calculos-resumo, echo=FALSE}
+# Cálculos antecipados apenas para os valores citados no Resumo;
+# o código de cada etapa é apresentado e comentado nas seções seguintes.
+.P  <- as.matrix(read.csv("DadosAcoesGrupoA.csv", header = FALSE))
+.P  <- .P[nrow(.P):1, ]
+.r  <- 100 * (.P[-1, ] / .P[-nrow(.P), ] - 1)
+.m  <- colMeans(.r)
+.tD <- t.test(.r[, 1], .r[, 3], paired = TRUE)
+```
+
+## Resumo
+
+Este estudo avalia qual, dentre cinco ações candidatas, tem maior potencial
+de retorno mensal para um investidor que pretende aplicar todo o capital em
+uma única ação. A partir dos preços de fechamento dos últimos 36 meses foram
+calculados 35 retornos mensais por ação. As médias foram comparadas por
+Análise de Variância (ANOVA) de um fator, com o teste de Kruskal-Wallis como
+checagem de robustez, seguida de comparações múltiplas de Tukey. As premissas
+foram verificadas via Shapiro-Wilk (normalidade), Fligner-Killeen
+(homogeneidade de variâncias) e Durbin-Watson (autocorrelação serial). A
+ANOVA rejeitou a igualdade das médias ($p < 0.001$). As ações A1
+($\bar{R} = `r round(.m[1], 2)`\%$ ao mês) e A3
+($\bar{R} = `r round(.m[3], 2)`\%$ ao mês) apresentaram retorno médio
+significativamente maior que o das demais, mas não diferiram entre si. Na
+comparação direta entre as duas, a diferença média foi de
+$`r round(mean(.r[, 1] - .r[, 3]), 2)`$ p.p. ao mês a favor da A1
+($p = `r round(.tD$p.value, 3)`$, IC 95%:
+$[`r round(.tD$conf.int[1], 2)`; `r round(.tD$conf.int[2], 2)`]$), sem
+diferença detectável de volatilidade, e o teste de equivalência (TOST) com
+margem $\delta^* = 0.5$ p.p. foi inconclusivo quanto à equivalência. A1
+apresentou a maior estimativa pontual de retorno, mas a potência do experimento
+para detectar $\delta^*$ nas comparações entre pares é limitada. Assim, os dados sustentam A1 e A3 como candidatas ao maior
+retorno médio, mas não fornecem evidência estatística suficiente para
+separá-las com segurança.
+
+## Desenho experimental
+
+### Descrição do problema
+
+O objetivo é identificar a ação com maior retorno mensal médio dentre cinco
+candidatas, usando os retornos dos últimos 35 meses como amostra do
+comportamento mensal de cada ação. Para cada ação $i$ e mês $j$, a variável
+de resposta é o retorno mensal simples, em %:
+
+$$R_{ij} = 100\left(\frac{P_{ij}}{P_{i,j-1}} - 1\right),$$
+
+em que $P_{ij}$ é o preço de fechamento da ação $i$ no mês $j$. Pela
+simplificação do enunciado, o preço de abertura de um mês é igual ao
+fechamento do mês anterior, de modo que $R_{ij}$ é exatamente o ganho
+percentual de quem compra a ação no início do mês $j$ e a vende no fim
+desse mês. Como as ações podem ser adquiridas de forma fracionária, esse
+ganho percentual independe do montante investido e do preço unitário de
+cada ação, o que torna os retornos das cinco ações diretamente comparáveis.
+Por esse mesmo motivo, os preços em si não são comparáveis entre ações e não
+foram utilizados como variável de resposta.
+
+A média foi adotada como parâmetro de interesse porque o investidor busca o
+maior ganho mensal *esperado*. Os retornos das cinco ações foram modelados
+por um modelo de efeitos fixos de um fator (**Ação**, com $a = 5$ níveis e
+$n = 35$ observações por nível):
+
+$$R_{ij} = \mu + \tau_i + \epsilon_{ij}, \qquad
+\begin{cases} i = 1, \dots, 5\\ j = 1, \dots, 35 \end{cases}, \qquad
+\epsilon_{ij} \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2),$$
+
+em que $\mu$ é a média global e $\tau_i$ é o efeito da ação $i$ [2]. O modelo de
+efeitos fixos é apropriado porque as cinco ações foram escolhidas pelo
+investidor, e as conclusões valem apenas para elas.
+
+Como os cinco retornos de um mesmo mês são observados sob as mesmas
+condições de mercado, uma alternativa seria tratar o mês como bloco, de modo
+análogo ao pareamento na comparação de duas amostras. O pareamento, porém, só
+é vantajoso quando há correlação relevante entre as observações de um mesmo
+bloco. Essa correlação foi avaliada na Análise Exploratória e, por ser
+praticamente nula, optou-se pelo modelo de um fator, mais simples e com mais
+graus de liberdade residuais.
+
+### Hipóteses
+
+A pergunta foi respondida em duas etapas, planejadas antes da análise.
+
+**Etapa 1 (ANOVA):** verifica-se se existe diferença entre os retornos
+médios das ações:
+
+$$\begin{cases} H_0: \tau_i = 0, \ \forall i \in \{1, \dots, 5\}\\ H_1: \exists\, \tau_i \neq 0\end{cases}$$
+
+**Etapa 2 (comparações múltiplas):** caso $H_0$ seja rejeitada, é preciso
+identificar *quais* ações diferem. Como não há uma ação de referência
+definida a priori (nenhuma das cinco é um "controle"), foram planejadas
+comparações de todos contra todos pelo método de Tukey [2, 6], com
+$K = a(a-1)/2 = 10$ pares:
+
+$$\begin{cases} H_0: \mu_i = \mu_k\\ H_1: \mu_i \neq \mu_k\end{cases}
+\qquad \forall\, i < k.$$
+
+O método de Dunnett seria apropriado se uma ação de referência tivesse sido
+definida antes da coleta. Como não há uma ação-controle definida a priori,
+o método de Tukey permite comparar todos os pares mantendo o nível global de
+significância. As ações que não diferirem significativamente da ação de maior
+média amostral formam o grupo de candidatas ao maior retorno.
+
+**Evidências complementares:** se mais de uma ação se destacar, conforme
+solicitado no enunciado, as duas primeiras colocadas serão comparadas
+diretamente por (i) teste $t$ pareado das diferenças mensais, (ii) teste de
+equivalência por dois testes unilaterais (TOST) com margem $\delta^*$ [4], (iii)
+comparação das variâncias (volatilidade) pelo teste de Fligner-Killeen e
+(iv) frequência de meses com retorno negativo. O pareamento é natural nessa
+comparação, pois as duas ações são observadas nos mesmos 35 meses. Embora
+esse procedimento tenha sido definido antes da análise, as ações comparadas
+são escolhidas por terem as maiores médias amostrais, de modo que a
+diferença observada entre elas tende a estar superestimada; os resultados
+dessa etapa são, por isso, tratados como evidência complementar, e não
+como prova de superioridade.
+
+O nível de significância adotado é $\alpha = 0.05$ em todas as etapas, e a
+potência desejada é $1 - \beta = 0.8$.
+
+### Tamanho de efeito mínimo relevante ($\delta^*$)
+
+Não há um valor consensual de diferença de retorno mensal a partir da qual
+uma ação deva ser preferida a outra, pois esse limiar depende do perfil do
+investidor, dos custos de transação e dos impostos. Definiu-se
+$\delta^* = 0.5$ ponto percentual ao mês, o que, para ações com retorno
+próximo de 2\% ao mês, corresponde a uma diferença de
+$\approx `r round(100 * (1.02^12 - 1.015^12), 1)`$ p.p. no retorno anual
+composto, diferença que altera de forma
+perceptível o resultado de uma aplicação ao longo de um ano. Diferenças
+menores que essa foram consideradas pouco relevantes para a decisão, pois
+tendem a ser absorvidas pelos custos de transação e impostos desconsiderados
+nas simplificações do problema. Ressalva-se que esse valor é uma escolha da
+equipe, usada para ancorar a análise de potência e o teste de equivalência,
+e não um valor extraído da literatura.
+
+```{r delta, echo=TRUE}
+delta_star <- 0.5  # delta* adotado, em p.p. ao mês
+```
+
+### Descrição da coleta e consolidação dos dados
+
+O arquivo `DadosAcoesGrupoA.csv` contém 36 linhas e 5 colunas, sem
+cabeçalho, com os preços de fechamento mensais de cada ação (colunas),
+ordenados **do mês mais recente para o mais antigo** (linha 1 = mês anterior
+ao atual). As colunas foram nomeadas A1 a A5, na ordem em que aparecem no
+arquivo.
+
+**Inversão da série:** como o retorno de um mês depende do preço do mês
+anterior, a série foi invertida para a ordem cronológica antes do cálculo.
+Sem essa inversão, os retornos seriam calculados no sentido oposto e uma
+ação em alta pareceria estar em queda. Com 36 preços obtêm-se $n = 35$
+retornos por ação.
+
+**Suposições explícitas:** (i) conforme o enunciado, o preço de abertura de
+cada mês é igual ao fechamento do mês anterior e as ações podem ser
+adquiridas de forma fracionária; (ii) os preços fornecidos não incluem
+dividendos, desdobramentos ou custos de transação, de modo que os retornos
+calculados são retornos brutos de preço.
+
+## Análise Exploratória
+
+Os dados foram carregados e consolidados conforme descrito no Desenho
+experimental:
+
+```{r loaddata}
+precos <- read.csv("DadosAcoesGrupoA.csv", header = FALSE)
+names(precos) <- paste0("A", 1:ncol(precos))
+
+# Arquivo ordenado do mês mais recente para o mais antigo: inverter
+precos <- precos[nrow(precos):1, ]
+P <- as.matrix(precos)
+
+# Retornos mensais simples (%)
+ret <- 100 * (P[-1, ] / P[-nrow(P), ] - 1)
+n   <- nrow(ret)
+
+df <- data.frame(
+  Mes  = rep(1:n, times = ncol(ret)),
+  Acao = factor(rep(colnames(ret), each = n)),
+  Ret  = as.vector(ret)
+)
+```
+
+A Tabela 1 resume as estatísticas descritivas dos retornos mensais por ação.
+
+```{r sumario, echo=FALSE}
+resumo <- data.frame(Acao     = colnames(ret),
+                     Media    = colMeans(ret),
+                     DP       = apply(ret, 2, sd),
+                     Mediana  = apply(ret, 2, median),
+                     Min      = apply(ret, 2, min),
+                     Max      = apply(ret, 2, max),
+                     MesesNeg = colSums(ret < 0))
+knitr::kable(resumo, digits = 3, row.names = FALSE,
+             caption = "Estatísticas descritivas dos retornos mensais (%) por ação")
+```
+
+A Figura 1 mostra a evolução dos preços normalizados pelo primeiro mês da
+série, e a Figura 2 ilustra a distribuição dos retornos mensais por ação.
+
+```{r precos, fig.width=7, fig.height=3.5, fig.cap="Preços de fechamento normalizados pelo primeiro mês da série (base 100)", echo=TRUE, message=FALSE}
+Pn  <- sweep(P, 2, P[1, ], "/") * 100
+dfP <- data.frame(Mes   = rep(0:n, times = ncol(P)),
+                  Acao  = rep(colnames(P), each = n + 1),
+                  Preco = as.vector(Pn))
+ggplot(dfP, aes(x = Mes, y = Preco, colour = Acao)) +
+  geom_line(linewidth = 0.8) +
+  labs(x = "Mês", y = "Preço normalizado", colour = "Ação") +
+  theme_minimal()
+```
+
+```{r boxplot, fig.width=7, fig.height=3.5, fig.cap="Retornos mensais por ação (pontos vermelhos: médias)", echo=TRUE, message=FALSE}
+ggplot(df, aes(x = Acao, y = Ret, fill = Acao)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(width = 0.1, alpha = 0.6) +
+  stat_summary(fun = mean, geom = "point", colour = "red", size = 3) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(y = "Retorno mensal (%)", x = NULL) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+Duas ações, A1 e A3, apresentam tendência de alta consistente, com retornos
+médios próximos de 2% ao mês e apenas `r resumo["A1", "MesesNeg"]` e
+`r resumo["A3", "MesesNeg"]` mês(es) de retorno negativo em `r n`,
+respectivamente. A A2 tem média negativa, enquanto A4 e A5 oscilam em torno
+de zero. As dispersões são da mesma ordem de grandeza (desvios-padrão entre
+`r round(min(resumo$DP), 2)` e `r round(max(resumo$DP), 2)` p.p.), e os
+boxplots são aproximadamente simétricos, sem *outliers* evidentes.
+
+A Tabela 2 apresenta a correlação entre os retornos mensais das ações, que
+indica se o pareamento por mês seria vantajoso.
+
+```{r correlacao, echo=FALSE}
+knitr::kable(cor(ret), digits = 2,
+             caption = "Correlação entre os retornos mensais das ações")
+```
+
+As correlações são baixas (em módulo, no máximo
+`r round(max(abs(cor(ret)[upper.tri(cor(ret))])), 2)`), ou seja, as ações
+não respondem de forma comum a um "efeito de mercado" mensal. O mês,
+portanto, não é uma fonte relevante de variabilidade compartilhada, e
+tratá-lo como bloco não reduziria a variância residual. Isso justifica o uso
+do modelo de um fator definido no Desenho experimental.
+
+## Análise Estatística
+
+### Etapa 1: ANOVA
+
+```{r anova, echo=TRUE}
+modelo <- aov(Ret ~ Acao, data = df)
+summary(modelo)
+
+# Checagem de robustez: alternativa não paramétrica à ANOVA
+kruskal.test(Ret ~ Acao, data = df)
+```
+
+```{r pglobal, echo=FALSE}
+tab <- summary(modelo)[[1]]
+QMR <- tab["Residuals", "Mean Sq"]
+```
+
+A hipótese nula de que todas as ações têm o mesmo retorno médio é rejeitada
+($F = `r round(tab[1, "F value"], 2)`$, $p < 0.001$), conclusão corroborada
+pelo teste de Kruskal-Wallis, que não depende da premissa de normalidade
+(embora teste diferenças de distribuição, e não especificamente de médias). Há,
+portanto, ao menos uma ação com retorno médio diferente das demais.
+
+### Etapa 2: comparações múltiplas de Tukey
+
+```{r tukey, echo=TRUE, fig.width=7, fig.height=3.8, fig.cap="Intervalos de confiança simultâneos de 95% (Tukey) para as diferenças entre médias"}
+tuk    <- glht(modelo, linfct = mcp(Acao = "Tukey"))
+tuk_CI <- confint(tuk, level = 0.95)
+tuk_CI
+
+par(mar = c(4, 8, 2, 1))
+plot(tuk_CI, main = "", xlab = "Diferença de retorno médio (p.p./mês)")
+```
+
+```{r grupo-melhor, echo=FALSE}
+ordem   <- names(sort(colMeans(ret), decreasing = TRUE))
+melhor  <- ordem[1]
+ci      <- tuk_CI$confint
+nm      <- rownames(ci)
+# Ações cujo IC da diferença em relação à melhor contém o zero
+naodif  <- sapply(setdiff(colnames(ret), melhor), function(a) {
+  k <- which(nm %in% c(paste(a, "-", melhor), paste(melhor, "-", a)))
+  ci[k, "lwr"] <= 0 & ci[k, "upr"] >= 0
+})
+grupo   <- c(melhor, names(naodif)[naodif])
+segunda <- ordem[ordem %in% grupo][2]
+```
+
+A ação de maior média amostral é a `r melhor`. O único intervalo de
+confiança envolvendo a `r melhor` que contém o zero é o da diferença
+`r segunda` $-$ `r melhor`, ou seja, apenas a `r segunda` não difere
+significativamente dela. Além disso, tanto a `r melhor` quanto a
+`r segunda` têm retorno médio significativamente maior que o de todas as
+demais ações, com diferenças entre $1.5$ e $2.6$ p.p. ao mês. As ações
+**`r melhor`** e **`r segunda`** se destacam, portanto, como candidatas ao
+maior retorno médio. Entre as demais, apenas a diferença A4 $-$ A2 é
+significativa (a diferença A5 $-$ A2 fica no limiar, com limite inferior do
+IC muito próximo de zero), o que não afeta a decisão.
+
+### Verificação das premissas
+
+O modelo da ANOVA pressupõe resíduos (1) independentes, (2) com variância
+homogênea entre as ações e (3) normalmente distribuídos. Embora a ANOVA seja
+relativamente robusta a violações moderadas de normalidade e de
+homocedasticidade quando o delineamento é balanceado [2], como neste caso (35
+observações por ação), essas premissas foram verificadas.
+
+```{r normalidade, echo=TRUE, fig.width=8, fig.height=3.5, fig.cap="Gráfico quantil-quantil dos resíduos (esquerda) e resíduos em função dos valores ajustados (direita)"}
+par(mfrow = c(1, 2), mar = c(4, 4, 1, 1))
+qqPlot(modelo$residuals, pch = 16, las = 1, id = FALSE,
+       xlab = "Quantis da Normal", ylab = "Resíduos")
+plot(modelo$fitted.values, modelo$residuals, pch = 16, las = 1,
+     xlab = "Valores ajustados", ylab = "Resíduos")
+abline(h = 0, lty = 2)
+
+shapiro.test(modelo$residuals)
+fligner.test(Ret ~ Acao, data = df)
+```
+
+**Normalidade.** Os resíduos não apresentam desvio relevante da normalidade
+(Shapiro-Wilk, $p = `r round(shapiro.test(modelo$residuals)$p.value, 3)`$),
+e os pontos do gráfico quantil-quantil permanecem dentro da banda de
+confiança.
+
+**Homocedasticidade.** O teste de Fligner-Killeen não rejeita a igualdade de
+variâncias entre as ações
+($p = `r round(fligner.test(Ret ~ Acao, data = df)$p.value, 3)`$), e o
+gráfico de resíduos por valores ajustados mostra dispersões semelhantes nos
+cinco níveis. O $p$-valor não é muito distante de $\alpha$, mas as razões
+entre os desvios-padrão das ações são pequenas (no máximo
+$\approx `r round(max(resumo$DP) / min(resumo$DP), 2)`$), e o delineamento
+balanceado torna a ANOVA robusta a diferenças dessa magnitude. A premissa é consistente com os dados e justifica o uso de uma
+variância comum $\sigma^2$, estimada pelo $QM_{Res}$, na ANOVA, nas
+comparações de Tukey e no cálculo de potência.
+
+**Independência.** É a premissa mais delicada, pois os dados são séries
+temporais, e retornos de meses consecutivos poderiam estar correlacionados
+(por exemplo, por tendências de mercado). O teste de Durbin-Watson [7] depende
+da ordenação das observações, e por isso foi aplicado a cada série de
+retornos em ordem cronológica, que é o fator suspeito de introduzir
+dependência.
+
+```{r independencia, echo=TRUE}
+set.seed(2026)  # o p-valor do durbinWatsonTest é obtido por reamostragem
+dw <- t(sapply(colnames(ret), function(a) {
+  r <- durbinWatsonTest(lm(ret[, a] ~ 1))
+  c(Autocorrelacao = r$r, DW = r$dw, p_valor = r$p)
+}))
+knitr::kable(dw, digits = 3,
+             caption = "Teste de Durbin-Watson para cada série de retornos")
+```
+
+Nenhuma série apresenta autocorrelação de primeira ordem significativa (todos
+os $p$-valores acima de 0.05), e as estatísticas DW estão próximas de 2,
+valor esperado na ausência de autocorrelação. A dependência entre ações num
+mesmo mês também é desprezível, como mostrado na Tabela 2. Não há, portanto,
+evidência de violação da independência.
+
+Resta uma premissa mais forte e não verificável com estes dados: a de que o
+comportamento dos retornos é estável no tempo, isto é, de que a média dos
+últimos 35 meses representa o retorno esperado para o próximo mês. Os testes
+comparam médias *históricas*, e a recomendação para o mês seguinte depende
+dessa hipótese.
+
+### Evidências complementares para a escolha entre `r melhor` e `r segunda`
+
+Como duas ações se destacaram, elas foram comparadas diretamente. Por serem
+observadas nos mesmos meses, a comparação foi feita com as diferenças
+pareadas $D_j = R_{`r melhor`,j} - R_{`r segunda`,j}$, pelo teste $t$
+pareado [1].
+
+```{r pareado, echo=TRUE}
+x <- ret[, melhor]; y <- ret[, segunda]; d <- x - y
+
+# (i) Teste t pareado (bilateral) e tamanho de efeito
+tD <- t.test(x, y, paired = TRUE)
+tD
+dD <- mean(d) / sd(d)
+cat("Tamanho de efeito d =", round(dD, 2), "\n")
+
+# (ii) TOST: H0: |mu_D| >= delta*  vs  H1: |mu_D| < delta*
+p_inf <- t.test(d, mu = -delta_star, alternative = "greater")$p.value
+p_sup <- t.test(d, mu =  delta_star, alternative = "less")$p.value
+ic90  <- t.test(d, conf.level = 0.90)$conf.int
+c(p_inferior = p_inf, p_superior = p_sup)
+ic90
+
+# (iii) Comparação das variâncias (volatilidade)
+fk <- fligner.test(list(x, y))
+fk
+
+# Premissa de normalidade das diferenças pareadas (teste t pareado e TOST)
+shapiro.test(d)
+```
+
+```{r tabela-comp, echo=FALSE}
+knitr::kable(data.frame(
+  Acao     = c(melhor, segunda),
+  Media    = c(mean(x), mean(y)),
+  DP       = c(sd(x), sd(y)),
+  Media_DP = c(mean(x) / sd(x), mean(y) / sd(y)),
+  MesesNeg = c(sum(x < 0), sum(y < 0))),
+  digits = 3, row.names = FALSE,
+  caption = paste0("Comparação entre ", melhor, " e ", segunda))
+```
+
+**(i) Diferença de médias.** A diferença média estimada é de
+$`r round(mean(d), 2)`$ p.p. ao mês a favor da `r melhor`, com tamanho de
+efeito pequeno ($d = `r round(dD, 2)`$), e o teste $t$ pareado não a
+considera significativa ($p = `r round(tD$p.value, 3)`$; IC 95%:
+$[`r round(tD$conf.int[1], 2)`; `r round(tD$conf.int[2], 2)`]$). O
+resultado é consistente com o obtido pelo método de Tukey. As diferenças
+pareadas não apresentam desvio relevante da normalidade (Shapiro-Wilk,
+$p = `r round(shapiro.test(d)$p.value, 3)`$), premissa do teste $t$ pareado
+e do TOST.
+
+**(ii) Equivalência.** A não rejeição em (i) não permite afirmar que as ações são equivalentes, e por isso foi realizado o TOST. O teste inferior rejeita sua hipótese nula ($p = `r signif(p_inf, 2)`$), fornecendo evidência de que a diferença média não é menor ou igual a $-\delta^*$. Já o teste superior não rejeita sua hipótese nula ($p = `r round(p_sup, 3)`$). De forma equivalente, o IC de 90% ($[`r round(ic90[1], 2)`; `r round(ic90[2], 2)`]$) não está contido em $[-\delta^*; \delta^*]$. Portanto, os dados sustentam não-inferioridade de `r melhor` em relação a `r segunda` para a margem de 0,5 p.p., mas **não sustentam equivalência** entre as duas ações. Como o intervalo ainda inclui diferenças positivas de até aproximadamente $`r round(ic90[2], 1)`$ p.p. ao mês, não é possível determinar, com este experimento, se a diferença real é pequena ou se `r melhor` apresenta alguma vantagem dentro dessa margem.
+
+**(iii) Risco.** Como o investidor aplica todo o capital em uma única ação,
+a volatilidade também é relevante para a decisão. O teste de
+Fligner-Killeen não indica diferença entre as variâncias das duas ações
+($p = `r round(fk$p.value, 3)`$), e as razões média/desvio-padrão são muito
+próximas (Tabela 4). O teste ignora o pareamento, o que é aceitável aqui dada
+a correlação praticamente nula entre as duas séries (Tabela 2).
+
+**(iv) Meses com perda.** As duas ações tiveram retorno negativo em apenas
+`r sum(x < 0)` e `r sum(y < 0)` dos `r n` meses, respectivamente, de modo que
+esse critério também não as distingue.
+
+### Potência do teste
+
+A potência foi calculada para o $\delta^*$ definido a priori, e não a partir
+do efeito observado, pois a avaliação a posteriori da probabilidade do erro
+tipo II é uma abordagem inadequada [8]. O desvio-padrão comum foi estimado
+pela raiz do quadrado médio do resíduo da ANOVA,
+$\hat\sigma = \sqrt{QM_{Res}} = `r round(sqrt(QMR), 3)`$ p.p.
+
+Foram realizados três cálculos [3]. O primeiro refere-se à ANOVA, considerando
+o cenário conservador em que apenas duas ações diferem por $\delta^*$,
+com desvios simétricos em relação à média global e as demais sem efeito,
+$\tau = \{-\delta^*/2, \delta^*/2, 0, 0, 0\}$. O segundo refere-se às
+comparações entre pares, usando a correção de Bonferroni
+($\alpha_{aj} = \alpha/K$, com $K = 10$) e a fórmula do teste $t$ de duas
+amostras. Como a correção de Bonferroni é mais conservadora que o método de
+Tukey, esse cálculo fornece uma referência conservadora para a potência das
+comparações. O terceiro refere-se à comparação direta entre as duas ações de
+destaque pelo teste $t$ pareado ($\alpha = 0.05$), usando o desvio-padrão
+amostral das diferenças pareadas.
+
+```{r power, echo=TRUE}
+sigma <- sqrt(QMR)
+tau   <- c(-delta_star/2, delta_star/2, 0, 0, 0)
+K     <- 10
+
+# ANOVA
+potA  <- power.anova.test(groups = 5, n = n, between.var = var(tau),
+                          within.var = sigma^2, sig.level = 0.05)
+npotA <- power.anova.test(groups = 5, between.var = var(tau),
+                          within.var = sigma^2, sig.level = 0.05, power = 0.80)
+
+# Comparações entre pares (Bonferroni)
+potC  <- power.t.test(n = n, delta = delta_star, sd = sigma,
+                      sig.level = 0.05 / K, type = "two.sample")
+npotC <- power.t.test(delta = delta_star, sd = sigma, sig.level = 0.05 / K,
+                      power = 0.80, type = "two.sample")
+
+# Comparação direta entre as duas ações de destaque (t pareado)
+potP  <- power.t.test(n = n, delta = delta_star, sd = sd(d),
+                      sig.level = 0.05, type = "paired")
+npotP <- power.t.test(delta = delta_star, sd = sd(d),
+                      sig.level = 0.05, power = 0.80, type = "paired")
+
+potA; npotA; potC; npotC; potP; npotP
+```
+
+Com $n = `r n`$ meses, a potência da ANOVA para detectar uma diferença de
+$\delta^* = `r delta_star`$ p.p. entre duas ações é de apenas
+$`r round(potA$power * 100, 1)`\%$, e seriam necessários
+`r ceiling(npotA$n)` meses por ação para atingir 80%. Nas comparações entre
+pares, a potência é de $\approx `r round(potC$power * 100, 1)`\%$, e seriam
+necessários cerca de `r ceiling(npotC$n)` meses. A comparação direta
+entre `r melhor` e `r segunda` pelo teste $t$ pareado
+($\hat\sigma_D = `r round(sd(d), 3)`$ p.p.) tem potência de
+$`r round(potP$power * 100, 1)`\%$ para $\delta^*$, abaixo dos 80\%
+desejados, que exigiriam `r ceiling(npotP$n)` meses. Como a diferença
+observada ($`r round(mean(d), 2)`$ p.p.) é ainda menor que $\delta^*$, a
+não rejeição de
+$\mu_{`r melhor`} = \mu_{`r segunda`}$ reflete essa limitação e não é
+evidência de igualdade, o que é coerente com o resultado inconclusivo do
+TOST.
+
+Em contraste, as diferenças entre as duas ações de destaque e as demais
+(aproximadamente 1,5 a 2,6 p.p.) são três a cinco vezes maiores que
+$\delta^*$. Essas diferenças foram identificadas pelas comparações múltiplas
+de Tukey, que rejeitaram as respectivas hipóteses de igualdade. Assim, os
+dados fornecem evidência consistente para separar A1 e A3 do grupo formado
+por A2, A4 e A5.
+
+### Conclusões e Recomendações
+
+- Ao nível $\alpha = 0.05$, há forte evidência de que os retornos médios das
+  cinco ações diferem ($p < 0.001$). As ações **`r melhor`** e
+  **`r segunda`** têm retorno médio significativamente maior que o de A2, A4
+  e A5, que podem ser descartadas, mas não diferem significativamente entre
+  si.
+- Na comparação direta entre `r melhor` e `r segunda`: (i) a `r melhor` tem
+  retorno médio $`r round(mean(d), 2)`$ p.p. ao mês maior
+  ($\approx `r round(100 * ((1 + mean(x)/100)^12 - (1 + mean(y)/100)^12), 1)`$
+  p.p. ao ano em regime composto), mas a diferença não é estatisticamente
+  significativa ($p = `r round(tD$p.value, 3)`$); (ii) o TOST não demonstra
+  equivalência, embora o teste unilateral correspondente forneça evidência
+  de que `r melhor` não seja inferior a `r segunda` por mais de
+  $\delta^* = 0.5$ p.p.; (iii) as volatilidades não diferem
+  significativamente ($p = `r round(fk$p.value, 3)`$); (iv) ambas tiveram
+  retorno negativo em apenas `r sum(x < 0)` e `r sum(y < 0)` dos `r n`
+  meses, respectivamente.
+- **Implicação para a escolha:** `r melhor` apresenta a maior média amostral
+  e `r segunda` apresenta a segunda maior, mas a diferença de
+  `r round(mean(d), 2)` p.p. ao mês não foi detectada como significativa pelo
+  teste pareado nem pelo Tukey. Portanto, **os dados não permitem selecionar
+  estatisticamente uma única entre `r melhor` e `r segunda` com base apenas no
+  retorno médio**. Se o investidor for obrigado a escolher uma única ação,
+  `r melhor` seria a escolha baseada exclusivamente na maior estimativa
+  pontual observada, mas essa escolha é descritiva e não representa uma
+  demonstração estatística de superioridade. O retorno de um mês específico
+  apresenta desvio-padrão de aproximadamente `r round(sd(x), 1)` p.p. para
+  `r melhor`, valor maior que a diferença média observada entre as duas.
+- **Recomendações para melhorar o experimento:** (i) aumentar o número de
+  meses observados para cerca de `r ceiling(npotC$n)`, caso se deseje 80% de
+  potência nas comparações entre pares para $\delta^*$; séries mais longas,
+  contudo, tornam mais forte a hipótese de estabilidade dos retornos no
+  tempo, e os dois objetivos precisam ser equilibrados; (ii) definir a
+  priori, junto com o investidor, a margem $\delta^*$ e um critério de
+  decisão que combine retorno e risco, em vez de usar o risco apenas como
+  critério de desempate; (iii) utilizar preços ajustados por dividendos e
+  desdobramentos e descontar custos de transação e impostos, que podem ser
+  da mesma ordem da diferença entre as duas melhores ações; (iv) validar a
+  recomendação fora da amostra, por exemplo escolhendo a ação com os meses
+  $1, \dots, t$ e verificando seu retorno no mês $t+1$, o que testa
+  diretamente a pergunta sobre o *próximo* mês; (v) caso uma série mais
+  longa revele correlação entre as ações num mesmo mês, tratar o mês como
+  bloco para remover essa fonte de variabilidade.
+
+### Referências
+
+[1] Montgomery DC, Runger GC. Applied Statistics and Probability for
+Engineers. 5th ed. Hoboken: John Wiley & Sons; 2010.
+
+[2] Montgomery DC. Design and Analysis of Experiments. 6th ed. Hoboken: John
+Wiley & Sons; 2005.
+
+[3] Mathews P. Sample Size Calculations: Practical Methods for Engineers and
+Scientists. Fairport Harbor: MMB; 2010.
+
+[4] Walker E, Nowacki AS. Understanding Equivalence and Noninferiority
+Testing. J Gen Intern Med. 2011;26(2):192-196.
+
+[5] Kerr NL. HARKing: Hypothesizing After the Results are Known. Pers Soc
+Psychol Rev. 1998;2(3):196-217.
+
+[6] Hothorn T, Bretz F, Westfall P. Simultaneous Inference in General
+Parametric Models. Biom J. 2008;50(3):346-363.
+
+[7] Campelo F. Lecture Notes on Design and Analysis of Experiments. Version
+2.12; 2018. Disponível em: http://git.io/v3Kh8.
+
+[8] Hoenig JM, Heisey DM. The Abuse of Power: The Pervasive Fallacy of
+Power Calculations for Data Analysis. Am Stat. 2001;55(1):19-24.
+
+### Papéis da equipe
+
+- Amanda Bomfim Moitinho: [PREENCHER]
+- David Felipe Brochero Giraldo: [PREENCHER]
+- Henrique Marques Cruz: [PREENCHER]
+
+### Declaração sobre o uso de IA generativa e tecnologias assistidas por IA
+
+Durante a preparação deste trabalho, os autores utilizaram o assistente de
+IA Claude (Anthropic) para apoiar a estruturação do código de análise
+estatística em R e a revisão do texto e da análise. Após o uso dessa ferramenta,
+os autores revisaram e editaram o conteúdo conforme necessário e assumem
+total responsabilidade pelo conteúdo do relatório.
