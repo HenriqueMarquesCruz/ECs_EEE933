@@ -210,7 +210,7 @@ que esse critério não distingue as duas ações e, portanto, não contradiz a 
 
 O mercado de ações constitui uma alternativa de investimento caracterizada pela possibilidade de obtenção de retornos superiores, mas também pela exposição a oscilações de preços e a riscos associados ao mercado. Como os retornos não são conhecidos no momento da aplicação, a escolha envolve incerteza e precisa ser estimada a partir de dados históricos. Contudo, uma ação com maior retorno médio amostral não é necessariamente a melhor escolha, pois essa diferença pode decorrer da variabilidade dos dados. Assim, a análise com testes estatísticos é fundamental para realizar inferências mais seguras.
 
-O retorno, entretanto, não é o único aspecto relevante para a decisão de investimento. Na teoria de carteiras, retorno e risco são considerados conjuntamente, sendo a variabilidade dos retornos uma medida usual do risco de um ativo [@markowitz1952]. Por isso, para reduzir a exposição do investidor às oscilações de um único ativo, uma estratégia usual seria a construção de um portfólio diversificado. Contudo, por simplicidade, conforme o enunciado, a decisão restringe-se, neste trabalho, à
+O retorno, entretanto, não é o único aspecto relevante para a decisão de investimento. Na teoria de carteiras, retorno e risco são considerados conjuntamente, sendo a variabilidade dos retornos uma medida usual do risco de um ativo [@markowitz1952]. Por isso, para reduzir a exposição do investidor às oscilações de um único ativo, uma estratégia usual seria a construção de um portfólio diversificado. Por simplicidade, conforme o enunciado, a decisão restringe-se, neste trabalho, à
 escolha de uma única ação dentre as avaliadas.
 
 Dessa forma, o objetivo deste trabalho é identificar, entre cinco alternativas, aquela que apresenta o maior retorno mensal médio como medida do potencial de ganho do investidor. Para isso, as alternativas são comparadas com base em seus preços de fechamento ao longo dos últimos 36 meses. A partir desses dados, são calculados os retornos mensais simples, tendo a ação como fator de interesse, com cinco níveis.
@@ -416,15 +416,11 @@ desvios-padrão entre `r round(min(resumo$DP), 2)` e `r round(max(resumo$DP), 2)
 
 ### Validação das premissas do modelo
 
-Antes da ANOVA, verificam-se as premissas do modelo: resíduos
-independentes, com variância homogênea entre as ações e normalmente
-distribuídos. Com delineamento balanceado, como neste caso, a ANOVA é
-relativamente robusta a violações moderadas de normalidade e de
-homocedasticidade [@montgomery2005]. Nos testes utilizados (Shapiro-Wilk,
-Fligner-Killeen e Durbin-Watson), a hipótese nula corresponde à premissa
-satisfeita; a não rejeição indica, portanto, apenas que não houve evidência
-suficiente para a reijeição, não que ela esteja comprovada. Por isso, os
-testes foram combinados com a análise gráfica dos resíduos.
+Antes da ANOVA, verificam-se as premissas do modelo de normalidade e variância 
+homogênea entre as ações. Apesar de não ser possível verificar, a indepêndencia também é avaliada. Com delineamento balanceado, como neste caso, a ANOVA é relativamente robusta a violações moderadas de normalidade e de homocedasticidade [@montgomery2005]. Nos testes utilizados (Shapiro-Wilk,Fligner-Killeen e Durbin-Watson), a hipótese nula corresponde 
+à premissa satisfeita; a não rejeição indica, portanto, apenas que não 
+houve evidência suficiente para a reijeição, não que ela esteja comprovada. 
+Por isso, os testes foram combinados com a análise gráfica dos resíduos.
 
 ```{r modelo}
 modelo <- aov(Ret ~ Acao, data = df)
@@ -496,9 +492,12 @@ knitr::kable(cor(ret), digits = 2,
              caption = "Correlação entre os retornos mensais das ações")
 ```
 
-As correlações são baixas (em módulo, no máximo `r round(max(abs(cor(ret)[upper.tri(cor(ret))])), 2)`), o que indica pouca associação linear entre os retornos das ações em um mesmo mês nesta amostra. Embora correlações baixas não garantam independência, os resultados não fornecem evidência de uma forte dependência linear entre as ações que, por si só, inviabilize a aplicação da ANOVA e do teste de Tukey.
+As correlações são baixas (em módulo, no máximo `r round(max(abs(cor(ret)[upper.tri(cor(ret))])), 2)`), o que indica pouca associação linear entre os retornos das ações em um mesmo mês nesta amostra. 
 
-No fim, como foi dito que são ações de empresas diferentes, pôde-se assumir independência e a análise de correlações não contradiz isso.
+Embora autocorrelações e correlações baixas não garantam independência, os resultados não fornecem evidência de uma forte dependência linear que, por si só, inviabilize a aplicação da ANOVA e do teste de Tukey.
+
+Adotou-se, portanto, a independência das observações como premissa do
+modelo.
 
 ### Etapa 1: ANOVA
 
@@ -615,16 +614,20 @@ nulas, é necessário avaliar a sensibilidade dos testes. A potência foi
 calculada *a priori* para o efeito normalizado $d^*$, e não a partir do
 efeito observado, pois a avaliação *a posteriori* do erro tipo II com o
 efeito observado é uma abordagem inadequada
-[@montgomery2010; @hoenig2001]. Nos dois cálculos, $d^*$ está em unidades
-do desvio-padrão $\sigma$ de um retorno mensal ($\sigma = 1$ na escala
-normalizada) [@mathews2010]:
+[@montgomery2010; @hoenig2001]. Foram realizados dois cálculos, um para cada etapa da análise. Em ambos, $d^*$ está em unidades do desvio-padrão $\sigma$ de um retorno mensal
+($\sigma = 1$ na escala normalizada) [@mathews2010]:
 
-1. ANOVA, no cenário conservador em que apenas duas ações diferem por
-   $d^*$, $\tau = \{-d^*/2, d^*/2, 0, 0, 0\}$;
-2. Comparação de duas médias independentes com correção de Bonferroni
-   ($\alpha/K$, $K = 10$), aproximação conservadora para planejamento, e
-   não cálculo exato da potência do procedimento de Tukey.
-
+1. potência da ANOVA, ao nível $\alpha = 0.05$, no cenário
+   conservador em que apenas duas ações diferem por $d^*$, com desvios
+   simétricos em relação à média global e as demais sem efeito,
+   $\tau = \{-d^*/2, d^*/2, 0, 0, 0\}$;
+2. potência das comparações entre pares, aproximada pela
+   comparação de duas médias independentes com correção de Bonferroni
+   ($\alpha/K$, com $K = 10$). Como a correção de Bonferroni é mais
+   conservadora que o método de Tukey, esse cálculo fornece uma referência
+   conservadora para planejamento, e não a potência exata do procedimento
+   de Tukey.
+   
 ```{r power}
 tau <- c(-d_star/2, d_star/2, 0, 0, 0)
 K   <- 10
@@ -674,8 +677,8 @@ lidas como referências de planejamento.
   Introdução para o investidor de perfil conservador, e **recomenda-se a
   `r rec`**, de menor desvio-padrão amostral
   (`r sprintf("%.2f", min(sd(x), sd(y)))` p.p., contra
-  `r sprintf("%.2f", max(sd(x), sd(y)))` p.p.). A recomendação decorre da regra de
-  decisão adotada e da estimativa amostral, e não de uma demonstração
+  `r sprintf("%.2f", max(sd(x), sd(y)))` p.p.). A recomendação decorre simplesmente 
+  da regra de decisão adotada e da estimativa amostral, e não de uma demonstração
   estatística de menor risco.
   - **Critério alternativo:** a frequência de meses com retorno positivo
   (`r pos[1]` e `r pos[2]` dos `r n` meses para a `r b` e a `r s`) não distingue as duas ações.
@@ -689,7 +692,7 @@ lidas como referências de planejamento.
   disponíveis, e é isso que permite que o critério de desempate oriente a escolha.
 - **Limitações e melhorias:** o modelo de um fator não representa um
   eventual efeito comum de mercado entre as ações observadas no mesmo mês;
-  as correlações baixas da Tabela 3 indicam pouca associação linear nesta
+  as correlações baixas da Tabela 3 não indicam presença de associação linear nesta
   amostra, mas não garantem independência. Recomendam-se (i) aumentar o número de meses para cerca de
   `r ceiling(npotC)`, caso se deseje 80% de potência nas comparações entre
   pares para $d^*$, ressalvando que séries mais longas tornam mais forte a
