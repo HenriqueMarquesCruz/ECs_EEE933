@@ -208,7 +208,7 @@ que esse critério não distingue as duas ações e, portanto, não contradiz a 
 
 ## Introdução
 
-O mercado de ações constitui uma alternativa de investimento caracterizada pela possibilidade de obtenção de retornos superiores, mas também pela exposição a oscilações de preços e a riscos associados ao mercado. Como os retornos não são conhecidos no momento da aplicação, a escolha envolve incerteza e precisa ser estimada a partir de dados históricos. Contudo, uma ação com maior retorno médio amostral não é necessariamente a melhor escolha, pois essa diferença pode decorrer da variabilidade dos dados. Assim, a análise com testes estatísticos é fundamental para realizar inferências mais seguras.
+O mercado de ações constitui uma alternativa de investimento caracterizada pela possibilidade de obtenção de retornos superiores, mas também pela exposição a oscilações de preços e a riscos associados ao mercado. Como os retornos não são conhecidos no momento da aplicação, eles precisam ser estimados a partir de dados históricos, e a escolha envolve incerteza. Contudo, uma ação com maior retorno médio amostral não é necessariamente a melhor escolha, pois essa diferença pode decorrer da variabilidade dos dados. Assim, a análise com testes estatísticos é fundamental para realizar inferências mais seguras.
 
 O retorno, entretanto, não é o único aspecto relevante para a decisão de investimento. Na teoria de carteiras, retorno e risco são considerados conjuntamente, sendo a variabilidade dos retornos uma medida usual do risco de um ativo [@markowitz1952]. Por isso, para reduzir a exposição do investidor às oscilações de um único ativo, uma estratégia usual seria a construção de um portfólio diversificado. Por simplicidade, conforme o enunciado, a decisão restringe-se, neste trabalho, à
 escolha de uma única ação dentre as avaliadas.
@@ -268,8 +268,10 @@ As ações que não diferirem significativamente da ação de maior média
 amostral formam, junto com ela, o grupo de candidatas ao maior retorno
 médio. Se o grupo contiver apenas essa ação, ela é a recomendada.
 
-**Critério para desempate:** caso mais de uma ação seja considerada candidata após a comparação dos retornos médios, o desempate é realizado pela menor variabilidade dos retornos, medida pelo desvio-padrão amostral.
-
+**Critério para desempate:**  havendo mais de uma candidata, as duas de
+maiores médias amostrais, denominadas $b$ (maior) e $s$ (segunda maior),
+são comparadas sob o critério de desempate de menor variabilidade dos retornos, 
+medida pelo desvio-padrão amostral. 
 
 **Evidências complementares:**
 (i) Comparação das variâncias pelo teste de Fligner-Killeen:
@@ -501,7 +503,7 @@ modelo.
 
 ### Etapa 1: ANOVA
 
-Com as premissas verificadas, a ANOVA testa a igualdade dos retornos
+Com as premissas avaliadas, a ANOVA testa a igualdade dos retornos
 médios das cinco ações.
 
 ```{r anova}
