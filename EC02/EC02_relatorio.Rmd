@@ -394,7 +394,7 @@ A2 termina `r abs(round(100 * (P[n + 1, "A2"] / P[1, "A2"] - 1)))`% abaixo
 do preço inicial, enquanto A4 e A5 terminam
 `r round(100 * (P[n + 1, "A4"] / P[1, "A4"] - 1))`% e
 `r round(100 * (P[n + 1, "A5"] / P[1, "A5"] - 1))`% acima. Vale notar que estas são as
-duas ações cujos intervalos de confiança da média mensal contém zero
+duas ações cujos intervalos de confiança da média mensal contêm zero
 (vide Tabela 1).
 
 ```{r boxplot, fig.width=7, fig.height=3.5, fig.cap="Retornos mensais por ação (pontos vermelhos: médias)"}
@@ -419,9 +419,9 @@ desvios-padrão entre `r round(min(resumo$DP), 2)` e `r round(max(resumo$DP), 2)
 ### Validação das premissas do modelo
 
 Antes da ANOVA, verificam-se as premissas do modelo de normalidade e variância 
-homogênea entre as ações. Apesar de não ser possível verificar, a indepêndencia também é avaliada. Com delineamento balanceado, como neste caso, a ANOVA é relativamente robusta a violações moderadas de normalidade e de homocedasticidade [@montgomery2005]. Nos testes utilizados (Shapiro-Wilk,Fligner-Killeen e Durbin-Watson), a hipótese nula corresponde 
+homogênea entre as ações. Apesar de não ser possível verificar, a independência também é avaliada. Com delineamento balanceado, como neste caso, a ANOVA é relativamente robusta a violações moderadas de normalidade e de homocedasticidade [@montgomery2005]. Nos testes utilizados (Shapiro-Wilk, Fligner-Killeen e Durbin-Watson), a hipótese nula corresponde 
 à premissa satisfeita; a não rejeição indica, portanto, apenas que não 
-houve evidência suficiente para a reijeição, não que ela esteja comprovada. 
+houve evidência suficiente para a rejeição, não que ela esteja comprovada. 
 Por isso, os testes foram combinados com a análise gráfica dos resíduos.
 
 ```{r modelo}
