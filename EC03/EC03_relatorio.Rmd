@@ -228,27 +228,27 @@ padronizado $\hat{d} = `r round(d_obs, 2)`$. Recomenda-se, portanto, a `r melhor
 
 ## Introdução
 
-Muitos problemas de engenharia podem ser formulados como a busca do mínimo
-(ou máximo) de uma função objetivo, frequentemente não convexa, de muitas
-variáveis e sem solução analítica. Para esses problemas, algoritmos
-baseados em populações, como a evolução diferencial (DE) [@storn1997], são
-uma alternativa comum: um conjunto de soluções candidatas é repetidamente
-submetido a operadores de mutação, recombinação e seleção, explorando o
-espaço de busca. O desempenho do DE, contudo, depende fortemente da
-configuração adotada, isto é, de quais operadores de mutação e de
-recombinação são utilizados e de seus parâmetros [@campelo2016].
+Muitos problemas de engenharia podem ser formulados como a busca do mínimo (ou
+máximo) de uma função objetivo, frequentemente não convexa, de muitas variáveis
+e sem solução analítica. Para esses problemas, algoritmos baseados em
+populações, como a evolução diferencial (DE, do inglês *differential evolution*)
+[@storn1997], são uma alternativa comum: um conjunto de soluções candidatas é
+repetidamente submetido a operadores de mutação, recombinação e seleção,
+explorando o espaço de busca. O desempenho do DE, contudo, depende fortemente da
+configuração adotada, isto é, de quais operadores de mutação e de recombinação
+são utilizados e de seus parâmetros [@campelo2016].
 
-A escolha da configuração não pode ser feita de forma universal: não existe
-algoritmo de otimização superior a todos os demais em todos os problemas
-possíveis [@wolpert1997], de modo que a comparação só faz sentido para uma
-classe de problemas de interesse. Além disso, o DE é estocástico, e seu
-resultado varia entre execuções na mesma instância e entre instâncias de
-uma mesma classe. Comparar configurações com base em poucas execuções ou em
-uma única instância pode, portanto, levar a conclusões que refletem apenas
-essa variabilidade. Para que a recomendação de uma configuração seja
-confiável, a comparação deve ser planejada como um experimento, com número
-de instâncias e de repetições definido antes da coleta e com controle das
-probabilidades de erro dos tipos I e II [@campelo2019].
+A escolha da configuração não pode ser feita de forma universal, tendo em vista
+que não existe algoritmo de otimização superior a todos os demais em todos os
+problemas possíveis [@wolpert1997], de modo que a comparação só faz sentido para
+uma classe de problemas de interesse. Além disso, o DE é estocástico, e seu
+resultado varia entre execuções na mesma instância e entre instâncias de uma
+mesma classe. Comparar configurações com base em poucas execuções ou em uma
+única instância pode, portanto, levar a conclusões que refletem apenas essa
+variabilidade. Para que a recomendação de uma configuração seja confiável, a
+comparação deve ser planejada como um experimento, com número de instâncias e de
+repetições definido antes da coleta e com controle das probabilidades de erro
+dos tipos I e II [@campelo2019].
 
 Neste trabalho, são comparadas duas configurações do DE, previamente
 ajustadas, na classe de funções de Rosenbrock [@rosenbrock1960;
@@ -340,10 +340,9 @@ Assim, são necessárias $N = `r N`$ instâncias
 ($n = `r round(plan$n, 2)`$, arredondado para cima). Com isso, a potência do teste
 para $d = d^*$ é de `r round(100 * pot_N, 1)`%, o que atende ao requisito do enunciado.
 
-As dimensões foram
-distribuídas em uma grade uniformemente espaçada no intervalo $[2, 150]$,
-arredondada para inteiros. Essa amostragem sistemática garante que toda a
-faixa de dimensões da classe seja coberta com a mesma densidade.
+As dimensões foram distribuídas em uma grade uniformemente espaçada no intervalo
+$[2, 150]$, arredondada para inteiros. Essa amostragem sistemática garante que
+toda a faixa de dimensões da classe seja coberta com a mesma densidade.
 
 **Repetições por instância.** O número de instâncias e o número de
 repetições por instância são determinados de forma independente
