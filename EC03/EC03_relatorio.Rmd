@@ -438,7 +438,7 @@ bruto <- do.call(rbind, lapply(seq_len(N), coleta_instancia))
 write.csv(bruto, "DadosDEGrupoA_bruto.csv", row.names = FALSE)
 ```
 
-## Análise Exploratória
+## Análise exploratória
 
 Os dados foram carregados e organizados conforme descrito no Desenho
 experimental:
